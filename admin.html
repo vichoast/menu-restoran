@@ -28,7 +28,6 @@
   h1,h2{font-family:"Fraunces", Georgia, serif; line-height:1.15; margin:0}
   button,input,textarea{font:inherit; color:inherit}
 
-  /* ---------- Barra superior ---------- */
   .topbar{background:var(--accent); color:var(--accent-ink)}
   .topbar .in{max-width:880px; margin:0 auto; padding:18px 16px; display:flex; align-items:center; gap:14px}
   .logo{width:44px; height:44px; border-radius:12px; background:rgba(255,255,255,.18); display:grid; place-items:center; font-size:1.5rem; flex:none}
@@ -37,14 +36,12 @@
 
   main{max-width:880px; margin:0 auto; padding:18px 16px 130px; display:grid; gap:16px}
 
-  /* ---------- Estado ---------- */
   .status{display:flex; gap:12px; align-items:flex-start; padding:14px 16px; border-radius:var(--radius); font-weight:600}
   .status .ico{font-size:1.3rem; line-height:1.2}
   .status small{display:block; font-weight:400; opacity:.9}
   .status.ok{background:var(--ok-soft); color:var(--ok)}
   .status.warn{background:var(--warn-soft); color:var(--warn)}
 
-  /* ---------- Tarjetas ---------- */
   .card{background:var(--paper); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px 16px}
   .card h2{font-size:1.15rem; display:flex; align-items:center; gap:8px; margin-bottom:4px}
   .card .sub{color:var(--muted); font-size:.92rem; margin:0 0 14px}
@@ -69,11 +66,13 @@
   .swatch input{position:absolute; opacity:0; pointer-events:none}
   .swatch i{width:46px; height:46px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 0 2px var(--line)}
   .swatch input:checked + i{box-shadow:0 0 0 3px var(--ink)}
-  .swatch input:focus-visible + i{outline:3px solid var(--ink); outline-offset:3px}
 
-  .reset{justify-self:center; background:none; border:0; color:var(--muted); font-weight:700; text-decoration:underline; cursor:pointer; padding:8px}
+  /* Lista de Pedidos */
+  .tabla-pedidos{width:100%; border-collapse:collapse; margin-top:10px; font-size:.95rem}
+  .tabla-pedidos th, .tabla-pedidos td{padding:10px 12px; border-bottom:1px solid var(--line); text-align:left}
+  .tabla-pedidos th{background:var(--bg); font-weight:700}
+  .pedidos-vacio{color:var(--muted); font-style:italic; padding:12px 0; text-align:center}
 
-  /* ---------- Barra de acciones ---------- */
   .actions{position:fixed; left:0; right:0; bottom:0; background:rgba(255,255,255,.96); backdrop-filter:blur(6px);
     border-top:1px solid var(--line); box-shadow:0 -6px 20px -12px rgba(0,0,0,.25); z-index:10}
   .actions .in{max-width:880px; margin:0 auto; padding:12px 16px calc(12px + env(safe-area-inset-bottom));
@@ -86,16 +85,12 @@
   .btn{border:0; border-radius:12px; padding:14px 18px; font-weight:800; cursor:pointer; flex:1 1 0; min-height:50px}
   @media (min-width:680px){ .btn{flex:0 0 auto} }
   .btn-sec{background:#fff; border:1.5px solid var(--line); color:var(--ink)}
-  .btn-sec:hover{border-color:var(--accent); color:var(--accent)}
   .btn-pri{background:var(--accent); color:var(--accent-ink); font-size:1.02rem}
-  .btn:focus-visible{outline:3px solid var(--ink); outline-offset:2px}
-  .btn:disabled{opacity:.6; cursor:wait}
 
   .toast{position:fixed; left:50%; bottom:110px; transform:translate(-50%, 30px); opacity:0; z-index:50;
     background:var(--ink); color:#fff; padding:12px 20px; border-radius:999px; font-weight:700; pointer-events:none;
     box-shadow:0 10px 30px rgba(0,0,0,.3); transition:transform .3s, opacity .3s; max-width:calc(100% - 32px); text-align:center}
   .toast.show{transform:translate(-50%, 0); opacity:1}
-  @media (prefers-reduced-motion:reduce){ *{transition:none !important} }
 </style>
 </head>
 <body>
@@ -113,8 +108,8 @@
 <main>
   <div class="status" id="status" role="status"></div>
 
-  <section class="card" aria-labelledby="h-precio">
-    <h2 id="h-precio">💲 Precio del almuerzo</h2>
+  <section class="card">
+    <h2>💲 Precio del almuerzo</h2>
     <p class="sub">Es el precio que verán los clientes en la tarjeta del Menú del Día.</p>
     <div class="grid2">
       <label class="field"><span class="lbl">Precio</span>
@@ -126,13 +121,12 @@
     </div>
   </section>
 
-  <section class="card" aria-labelledby="h-platos">
-    <h2 id="h-platos">📝 Platos del día</h2>
-    <p class="sub">Escribe una opción por línea. Las secciones que dejes vacías no se muestran a los clientes.</p>
+  <section class="card">
+    <h2>📝 Platos del día</h2>
+    <p class="sub">Escribe una opción por línea.</p>
     <div class="grid2">
       <label class="field"><span class="lbl">🍲 Platos Principales <span class="count" data-for="f-principales"></span></span>
-        <textarea id="f-principales"></textarea>
-        <span class="help">Obligatorio: al menos un plato.</span></label>
+        <textarea id="f-principales"></textarea></label>
       <label class="field"><span class="lbl">🍚 Agregados <span class="count" data-for="f-agregados"></span></span>
         <textarea id="f-agregados"></textarea></label>
       <label class="field"><span class="lbl">🥗 Entradas / Ensaladas <span class="count" data-for="f-entradas"></span></span>
@@ -144,43 +138,46 @@
     </div>
   </section>
 
-  <section class="card" aria-labelledby="h-color">
-    <h2 id="h-color">🎨 Color de la página</h2>
-    <p class="sub">Este panel cambia de color para mostrarte cómo se verá.</p>
+  <section class="card">
+    <h2>🎨 Color de la página</h2>
     <div class="swatches" id="swatches"></div>
   </section>
 
-  <section class="card" aria-labelledby="h-local">
-    <h2 id="h-local">🏠 Datos del local</h2>
-    <p class="sub">Aparecen en el encabezado y en el mensaje de WhatsApp.</p>
+  <section class="card">
+    <h2>🏠 Datos del local</h2>
     <div class="grid2">
       <label class="field"><span class="lbl">Nombre</span><input id="f-nombre"></label>
       <label class="field"><span class="lbl">Dirección</span><input id="f-direccion"></label>
       <label class="field"><span class="lbl">Horario</span><input id="f-horario"></label>
       <label class="field"><span class="lbl">WhatsApp para pedidos</span>
-        <input id="f-wa" inputmode="tel" placeholder="56912345678">
-        <span class="help">Con código de país, sin + ni espacios. Ej: 56912345678</span></label>
+        <input id="f-wa" inputmode="tel" placeholder="56912345678"></label>
     </div>
   </section>
 
-  <button class="reset" type="button" id="btn-reset">Restaurar menú de ejemplo</button>
+  <!-- NUEVA SECCIÓN DE REPORTES EN VIVO -->
+  <section class="card">
+    <h2>📋 Pedidos Registrados Hoy</h2>
+    <p class="sub">Se actualiza en tiempo real cuando alguien envía un pedido desde la web.</p>
+    <div id="contenedor-pedidos">
+      <p class="pedidos-vacio">Cargando lista de pedidos…</p>
+    </div>
+  </section>
 </main>
 
 <div class="actions">
   <div class="in">
-    <div class="dirty" id="dirty" aria-live="polite">Todo publicado</div>
-    <button class="btn btn-sec" type="button" id="btn-preview">👀 Ver vista previa del cliente</button>
+    <div class="dirty" id="dirty">Todo publicado</div>
+    <button class="btn btn-sec" type="button" id="btn-preview">👀 Vista previa</button>
     <button class="btn btn-pri" type="button" id="btn-save">Guardar y Publicar Menú</button>
   </div>
 </div>
 
-<div class="toast" id="toast" role="status"></div>
+<div class="toast" id="toast"></div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-  /* ---------- Conexión con Firebase ---------- */
   const firebaseConfig = {
     apiKey: "AIzaSyB4fIq_u9YM_wrgepR5BIjvNvzd9VQ2lI",
     authDomain: "menurestaurant-235f7.firebaseapp.com",
@@ -193,74 +190,48 @@
   };
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const menuRef = ref(db, 'menu');   // misma rama que escucha index.html
-
-  const CLIENT_PAGE = 'index.html';
+  const menuRef = ref(db, 'menu');
+  const pedidosRef = ref(db, 'pedidos');
 
   const THEMES = [
-    { id:'tomate',    name:'Tomate',    color:'#B83A2A' },
-    { id:'oliva',     name:'Oliva',     color:'#56742A' },
-    { id:'mostaza',   name:'Mostaza',   color:'#9A6608' },
+    { id:'tomate', name:'Tomate', color:'#B83A2A' },
+    { id:'oliva', name:'Oliva', color:'#56742A' },
+    { id:'mostaza', name:'Mostaza', color:'#9A6608' },
     { id:'berenjena', name:'Berenjena', color:'#6A3858' },
-    { id:'canela',    name:'Canela',    color:'#7D4A26' }
+    { id:'canela', name:'Canela', color:'#7D4A26' }
   ];
   const LISTS = ['principales', 'agregados', 'entradas', 'postres', 'bebidas'];
 
   const DEFAULTS = {
-    info: {
-      nombre: 'Restoran San José',
-      direccion: 'Av. Ejemplo 1234, Santiago',
-      horario: 'Lun a Vie · 12:30 a 16:00',
-      whatsapp: '56912345678'
-    },
-    precio: 6500,
-    incluye: 'Plato principal + agregado a elección',
-    principales: [
-      'Merluza Frita c/arroz y papas fritas',
-      'Lasaña Boloñesa',
-      'Cazuela de Cerdo',
-      'Guiso de Acelga c/papas doradas',
-      'Nuggets c/agregado',
-      'Hipocalórico (Filetitos Apanados)'
-    ],
-    agregados: ['Arroz', 'Puré de Papas', 'Papas Fritas', 'Ensaladas', 'Fideos', 'Papas Cocidas'],
-    entradas: [],
-    postres: [],
-    bebidas: [],
-    tema: 'tomate',
-    actualizado: null
+    info: { nombre: 'Restoran San José', direccion: 'Av. Ejemplo 1234, Santiago', horario: 'Lun a Vie · 12:30 a 16:00', whatsapp: '56912345678' },
+    precio: 6500, incluye: 'Plato principal + agregado a elección',
+    principales: ['Merluza Frita c/arroz y papas fritas', 'Lasaña Boloñesa', 'Cazuela de Cerdo'],
+    agregados: ['Arroz', 'Puré de Papas', 'Papas Fritas', 'Ensaladas'],
+    entradas: [], postres: [], bebidas: [], tema: 'tomate'
   };
 
   const $ = id => document.getElementById(id);
-  const clone = o => JSON.parse(JSON.stringify(o));
-  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const clp = n => new Intl.NumberFormat('es-CL', { style:'currency', currency:'CLP', maximumFractionDigits:0 }).format(n || 0);
   const lines = s => s.split('\n').map(x => x.trim()).filter(Boolean);
-  const dayKey = d => { const x = new Date(d); return x.getFullYear() + '-' + (x.getMonth()+1) + '-' + x.getDate(); };
-  const fechaLarga = d => cap(new Date(d).toLocaleDateString('es-CL', { weekday:'long', day:'numeric', month:'long' }));
-  const hora = d => new Date(d).toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit', hourCycle:'h23' });
+  // Limpia el texto que escriben los clientes antes de mostrarlo en la tabla
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
 
-  // Firebase no guarda listas vacías y a veces devuelve listas como objetos {0:…, 1:…}
   function toList(v) {
     if (Array.isArray(v)) return v.filter(Boolean).map(String);
-    if (v && typeof v === 'object') {
-      return Object.keys(v).sort((a, b) => Number(a) - Number(b)).map(k => v[k]).filter(Boolean).map(String);
-    }
+    if (v && typeof v === 'object') return Object.keys(v).sort((a, b) => Number(a) - Number(b)).map(k => v[k]).filter(Boolean).map(String);
     return [];
   }
 
   function normalize(s) {
-    if (!s || typeof s !== 'object') return clone(DEFAULTS);
-    const d = { ...clone(DEFAULTS), ...s, info: { ...DEFAULTS.info, ...(s.info || {}) } };
+    if (!s || typeof s !== 'object') return JSON.parse(JSON.stringify(DEFAULTS));
+    const d = { ...JSON.parse(JSON.stringify(DEFAULTS)), ...s, info: { ...DEFAULTS.info, ...(s.info || {}) } };
     LISTS.forEach(k => { d[k] = toList(s[k]); });
-    if (!d.actualizado) d.actualizado = null;
     return d;
   }
 
-  let saved = null;      // último menú publicado en Firebase
-  let loaded = false;    // ¿ya llegó el primer dato?
+  let saved = null;
   let dirty = false;
 
-  /* ---------- Tema ---------- */
   function applyTheme(id) {
     const t = THEMES.find(x => x.id === id) || THEMES[0];
     document.documentElement.dataset.theme = t.id;
@@ -278,99 +249,73 @@
     sw.appendChild(lab);
   });
 
-  /* ---------- Formulario ---------- */
   function fillForm(d) {
     $('f-precio').value = d.precio;
     $('f-incluye').value = d.incluye;
-    LISTS.forEach(k => { $('f-' + k).value = (d[k] || []).join('\n'); });
-    $('f-nombre').value = d.info.nombre;
+    LISTS.forEach(k => { $('f-' + k).value = (d[k] || []).join('\n'); });$('f-nombre').value = d.info.nombre;
     $('f-direccion').value = d.info.direccion;
     $('f-horario').value = d.info.horario;
     $('f-wa').value = d.info.whatsapp;
     (sw.querySelector('input[value="' + d.tema + '"]') || sw.querySelector('input')).checked = true;
     applyTheme(d.tema);
-    updateCounts();
-  }
-
-  function updateCounts() {
-    document.querySelectorAll('.count').forEach(el => {
-      const n = lines($(el.dataset.for).value).length;
-      el.textContent = n === 0 ? 'vacío' : n === 1 ? '1 opción' : n + ' opciones';
-    });
-  }
-
-  function setStatus(kind, ico, title, detail) {
-    const box = $('status');
-    box.className = 'status ' + kind;
-    box.innerHTML = '<span class="ico"></span><div></div>';
-    box.firstChild.textContent = ico;
-    box.lastChild.textContent = title;
-    if (detail) {
-      const s = document.createElement('small');
-      s.textContent = detail;
-      box.lastChild.appendChild(s);
-    }
-  }
-
-  function updateStatus() {
-    if (!saved) {
-      setStatus('warn', '⏳', 'Conectando con el menú en línea…');
-      return;
-    }
-    $('t-nombre').textContent = saved.info.nombre + ' · Panel de la familia';
-    if (!saved.actualizado) {
-      setStatus('warn', '✏️', 'Aún no has publicado ningún menú.',
-        'Los clientes ven el menú de ejemplo. Cámbialo por el de hoy y publícalo.');
-    } else if (dayKey(saved.actualizado) !== dayKey(Date.now())) {
-      setStatus('warn', '⚠️', 'El menú publicado es del ' + fechaLarga(saved.actualizado).toLowerCase() + '.',
-        'Revisa los platos y publica el menú de hoy.');
-    } else {
-      setStatus('ok', '✅', 'Menú de hoy publicado a las ' + hora(saved.actualizado) + '.',
-        'Si cambias algo, vuelve a tocar “Guardar y Publicar Menú”.');
-    }
-  }
-
-  function setDirty(on) {
-    dirty = on;
-    const el = $('dirty');
-    el.classList.toggle('on', on);
-    el.textContent = on ? 'Tienes cambios sin publicar' : 'Todo publicado';
   }
 
   document.querySelector('main').addEventListener('input', e => {
-    if (e.target.matches('textarea')) updateCounts();
     if (e.target.name === 'tema') applyTheme(e.target.value);
     setDirty(true);
   });
-  sw.addEventListener('change', e => { applyTheme(e.target.value); setDirty(true); });
 
-  /* ---------- Guardar y publicar ---------- */
-  const btnSave = $('btn-save');
-  btnSave.disabled = true;   // se habilita cuando llega el menú actual
+  function setDirty(on) {
+    dirty = on;
+    $('dirty').classList.toggle('on', on);$('dirty').textContent = on ? 'Tienes cambios sin publicar' : 'Todo publicado';
+  }
 
-  btnSave.onclick = () => {
-    const principales = lines($('f-principales').value);
-    if (!principales.length) {
-      $('f-principales').focus();
-      toast('Agrega al menos un plato principal');
+  // Cargar Menú
+  onValue(menuRef, snap => {
+    saved = normalize(snap.val());
+    if (!dirty) fillForm(saved);
+  });
+
+  // Cargar Pedidos en tiempo real para RRHH
+  onValue(pedidosRef, snap => {
+    const data = snap.val();
+    const cont = $('contenedor-pedidos');
+    if (!data) {
+      cont.innerHTML = '<p class="pedidos-vacio">Aún no hay pedidos registrados hoy.</p>';
       return;
     }
-    const wa = $('f-wa').value.replace(/\D/g, '');
-    if (wa.length < 8) {
-      $('f-wa').focus();
-      toast('Revisa el número de WhatsApp');
+
+    const hoy = new Date().toDateString();
+    const lista = Object.values(data)
+      .filter(p => new Date(p.fecha).toDateString() === hoy)
+      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    if (!lista.length) {
+      cont.innerHTML = '<p class="pedidos-vacio">Aún no hay pedidos registrados hoy.</p>';
       return;
     }
+
+    let html = '<table class="tabla-pedidos"><thead><tr><th>Hora</th><th>Cliente</th><th>Detalle</th><th>Total</th></tr></thead><tbody>';
+    lista.forEach(p => {
+      const hora = new Date(p.fecha).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+      html += `<tr>
+        <td><b>${hora}</b></td>
+        <td><b>${esc(p.cliente)}</b></td>
+        <td>${esc(p.detalle)} ${p.nota ? '<i>(' + esc(p.nota) + ')</i>' : ''}</td>
+        <td>${clp(Number(p.total) || 0)}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    cont.innerHTML = html;
+  });
+
+  // Guardar
+  $('btn-save').onclick = () => {
     const data = {
-      info: {
-        nombre: $('f-nombre').value.trim() || DEFAULTS.info.nombre,
-        direccion: $('f-direccion').value.trim(),
-        horario: $('f-horario').value.trim(),
-        whatsapp: wa
-      },
-      precio: Math.max(0, Math.round(Number($('f-precio').value) || 0)),
+      info: { nombre: $('f-nombre').value.trim(), direccion:$('f-direccion').value.trim(), horario: $('f-horario').value.trim(), whatsapp:$('f-wa').value.replace(/\D/g, '') },
+      precio: Number($('f-precio').value) || 0,
       incluye: $('f-incluye').value.trim(),
-      principales,
+      principales: lines($('f-principales').value),
       agregados: lines($('f-agregados').value),
       entradas: lines($('f-entradas').value),
       postres: lines($('f-postres').value),
@@ -378,79 +323,10 @@
       tema: (sw.querySelector('input:checked') || {}).value || 'tomate',
       actualizado: new Date().toISOString()
     };
-
-    btnSave.disabled = true;
-    btnSave.textContent = 'Publicando…';
-    set(menuRef, data)
-      .then(() => {
-        saved = normalize(data);
-        fillForm(saved);   // limpia líneas vacías y espacios sobrantes
-        setDirty(false);
-        updateStatus();
-        toast('¡Menú publicado! 🎉');
-      })
-      .catch(err => {
-        console.error('Firebase:', err);
-        const denied = /permission/i.test((err && (err.code || err.message)) || '');
-        toast(denied
-          ? 'Firebase no permitió publicar. Revisa las reglas de la base de datos.'
-          : 'No se pudo publicar. Revisa tu conexión e intenta de nuevo.');
-      })
-      .finally(() => {
-        btnSave.disabled = false;
-        btnSave.textContent = 'Guardar y Publicar Menú';
-      });
+    set(menuRef, data).then(() => { setDirty(false); alert('¡Menú publicado!'); });
   };
 
-  /* ---------- Vista previa ---------- */
-  $('btn-preview').onclick = () => {
-    window.open(CLIENT_PAGE, '_blank');
-    if (dirty) toast('La vista previa muestra lo último publicado');
-  };
-
-  /* ---------- Restaurar ejemplo ---------- */
-  $('btn-reset').onclick = () => {
-    if (confirm('¿Reemplazar los campos por el menú de ejemplo? No se publica hasta que toques “Guardar y Publicar Menú”.')) {
-      fillForm(DEFAULTS);
-      setDirty(true);
-    }
-  };
-
-  /* ---------- Avisos ---------- */
-  let tt;
-  function toast(text) {
-    const t = $('toast');
-    t.textContent = text;
-    t.classList.add('show');
-    clearTimeout(tt);
-    tt = setTimeout(() => t.classList.remove('show'), 2800);
-  }
-
-  // Avisar si se cierra la pestaña sin publicar
-  window.addEventListener('beforeunload', e => {
-    if (dirty) { e.preventDefault(); e.returnValue = ''; }
-  });
-
-  /* ---------- Sincronización en tiempo real ---------- */
-  // Si otra persona de la familia publica desde otro celular o computador, el panel se actualiza.
-  // Si aquí hay cambios sin publicar, no se pisan: solo se actualiza el estado de arriba.
-  onValue(menuRef, snap => {
-    const first = !loaded;
-    loaded = true;
-    saved = normalize(snap.val());
-    updateStatus();
-    if (first || !dirty) {
-      fillForm(saved);
-      setDirty(false);
-    }
-    if (btnSave.textContent !== 'Publicando…') btnSave.disabled = false;
-  }, err => {
-    console.error('Firebase:', err);
-    setStatus('warn', '⚠️', 'No se pudo conectar con la base de datos.',
-      'Revisa tu conexión y las reglas de Firebase, y recarga la página.');
-  });
-
-  updateStatus();
+  $('btn-preview').onclick = () => window.open('index.html', '_blank');
 </script>
 </body>
 </html>
