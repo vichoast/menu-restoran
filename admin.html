@@ -89,6 +89,7 @@
   .btn-sec:hover{border-color:var(--accent); color:var(--accent)}
   .btn-pri{background:var(--accent); color:var(--accent-ink); font-size:1.02rem}
   .btn:focus-visible{outline:3px solid var(--ink); outline-offset:2px}
+  .btn:disabled{opacity:.6; cursor:wait}
 
   .toast{position:fixed; left:50%; bottom:110px; transform:translate(-50%, 30px); opacity:0; z-index:50;
     background:var(--ink); color:#fff; padding:12px 20px; border-radius:999px; font-weight:700; pointer-events:none;
@@ -175,9 +176,25 @@
 
 <div class="toast" id="toast" role="status"></div>
 
-<script>
-(() => {
-  const KEY = 'menuDelDia.v2';   // misma clave que lee index.html
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  /* ---------- Conexión con Firebase ---------- */
+  const firebaseConfig = {
+    apiKey: "AIzaSyB4fIq_u9YM_wrgepR5BIjvNvzd9VQ2lI",
+    authDomain: "menurestaurant-235f7.firebaseapp.com",
+    databaseURL: "https://menurestaurant-235f7-default-rtdb.firebaseio.com",
+    projectId: "menurestaurant-235f7",
+    storageBucket: "menurestaurant-235f7.firebasestorage.app",
+    messagingSenderId: "159171586731",
+    appId: "1:159171586731:web:d6de4ef7c020ff9b4de5ee",
+    measurementId: "G-TTMMN0X90E"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const menuRef = ref(db, 'menu');   // misma rama que escucha index.html
+
   const CLIENT_PAGE = 'index.html';
 
   const THEMES = [
@@ -222,21 +239,25 @@
   const fechaLarga = d => cap(new Date(d).toLocaleDateString('es-CL', { weekday:'long', day:'numeric', month:'long' }));
   const hora = d => new Date(d).toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit', hourCycle:'h23' });
 
-  function load() {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) {
-        const s = JSON.parse(raw);
-        return { ...clone(DEFAULTS), ...s, info: { ...DEFAULTS.info, ...(s.info || {}) } };
-      }
-    } catch (e) {}
-    return clone(DEFAULTS);
-  }
-  function persist(d) {
-    try { localStorage.setItem(KEY, JSON.stringify(d)); return true; } catch (e) { return false; }
+  // Firebase no guarda listas vacías y a veces devuelve listas como objetos {0:…, 1:…}
+  function toList(v) {
+    if (Array.isArray(v)) return v.filter(Boolean).map(String);
+    if (v && typeof v === 'object') {
+      return Object.keys(v).sort((a, b) => Number(a) - Number(b)).map(k => v[k]).filter(Boolean).map(String);
+    }
+    return [];
   }
 
-  let saved = load();
+  function normalize(s) {
+    if (!s || typeof s !== 'object') return clone(DEFAULTS);
+    const d = { ...clone(DEFAULTS), ...s, info: { ...DEFAULTS.info, ...(s.info || {}) } };
+    LISTS.forEach(k => { d[k] = toList(s[k]); });
+    if (!d.actualizado) d.actualizado = null;
+    return d;
+  }
+
+  let saved = null;      // último menú publicado en Firebase
+  let loaded = false;    // ¿ya llegó el primer dato?
   let dirty = false;
 
   /* ---------- Tema ---------- */
@@ -278,26 +299,34 @@
     });
   }
 
-  function updateStatus() {
+  function setStatus(kind, ico, title, detail) {
     const box = $('status');
+    box.className = 'status ' + kind;
+    box.innerHTML = '<span class="ico"></span><div></div>';
+    box.firstChild.textContent = ico;
+    box.lastChild.textContent = title;
+    if (detail) {
+      const s = document.createElement('small');
+      s.textContent = detail;
+      box.lastChild.appendChild(s);
+    }
+  }
+
+  function updateStatus() {
+    if (!saved) {
+      setStatus('warn', '⏳', 'Conectando con el menú en línea…');
+      return;
+    }
     $('t-nombre').textContent = saved.info.nombre + ' · Panel de la familia';
     if (!saved.actualizado) {
-      box.className = 'status warn';
-      box.innerHTML = '<span class="ico">✏️</span><div>Aún no has publicado ningún menú.<small>Los clientes ven el menú de ejemplo. Cámbialo por el de hoy y publícalo.</small></div>';
+      setStatus('warn', '✏️', 'Aún no has publicado ningún menú.',
+        'Los clientes ven el menú de ejemplo. Cámbialo por el de hoy y publícalo.');
     } else if (dayKey(saved.actualizado) !== dayKey(Date.now())) {
-      box.className = 'status warn';
-      box.innerHTML = '<span class="ico">⚠️</span><div></div>';
-      box.lastChild.textContent = 'El menú publicado es del ' + fechaLarga(saved.actualizado).toLowerCase() + '.';
-      const s = document.createElement('small');
-      s.textContent = 'Revisa los platos y publica el menú de hoy.';
-      box.lastChild.appendChild(s);
+      setStatus('warn', '⚠️', 'El menú publicado es del ' + fechaLarga(saved.actualizado).toLowerCase() + '.',
+        'Revisa los platos y publica el menú de hoy.');
     } else {
-      box.className = 'status ok';
-      box.innerHTML = '<span class="ico">✅</span><div></div>';
-      box.lastChild.textContent = 'Menú de hoy publicado a las ' + hora(saved.actualizado) + '.';
-      const s = document.createElement('small');
-      s.textContent = 'Si cambias algo, vuelve a tocar “Guardar y Publicar Menú”.';
-      box.lastChild.appendChild(s);
+      setStatus('ok', '✅', 'Menú de hoy publicado a las ' + hora(saved.actualizado) + '.',
+        'Si cambias algo, vuelve a tocar “Guardar y Publicar Menú”.');
     }
   }
 
@@ -316,7 +345,10 @@
   sw.addEventListener('change', e => { applyTheme(e.target.value); setDirty(true); });
 
   /* ---------- Guardar y publicar ---------- */
-  $('btn-save').onclick = () => {
+  const btnSave = $('btn-save');
+  btnSave.disabled = true;   // se habilita cuando llega el menú actual
+
+  btnSave.onclick = () => {
     const principales = lines($('f-principales').value);
     if (!principales.length) {
       $('f-principales').focus();
@@ -346,15 +378,28 @@
       tema: (sw.querySelector('input:checked') || {}).value || 'tomate',
       actualizado: new Date().toISOString()
     };
-    if (!persist(data)) {
-      toast('Este navegador no permitió guardar. Revisa que no esté en modo incógnito.');
-      return;
-    }
-    saved = data;
-    fillForm(saved);   // limpia líneas vacías y espacios sobrantes
-    setDirty(false);
-    updateStatus();
-    toast('¡Menú publicado! 🎉');
+
+    btnSave.disabled = true;
+    btnSave.textContent = 'Publicando…';
+    set(menuRef, data)
+      .then(() => {
+        saved = normalize(data);
+        fillForm(saved);   // limpia líneas vacías y espacios sobrantes
+        setDirty(false);
+        updateStatus();
+        toast('¡Menú publicado! 🎉');
+      })
+      .catch(err => {
+        console.error('Firebase:', err);
+        const denied = /permission/i.test((err && (err.code || err.message)) || '');
+        toast(denied
+          ? 'Firebase no permitió publicar. Revisa las reglas de la base de datos.'
+          : 'No se pudo publicar. Revisa tu conexión e intenta de nuevo.');
+      })
+      .finally(() => {
+        btnSave.disabled = false;
+        btnSave.textContent = 'Guardar y Publicar Menú';
+      });
   };
 
   /* ---------- Vista previa ---------- */
@@ -386,17 +431,26 @@
     if (dirty) { e.preventDefault(); e.returnValue = ''; }
   });
 
-  // Si otra pestaña del panel publica, actualizar (solo si aquí no hay cambios pendientes)
-  window.addEventListener('storage', e => {
-    if (e.key !== KEY) return;
-    saved = load();
+  /* ---------- Sincronización en tiempo real ---------- */
+  // Si otra persona de la familia publica desde otro celular o computador, el panel se actualiza.
+  // Si aquí hay cambios sin publicar, no se pisan: solo se actualiza el estado de arriba.
+  onValue(menuRef, snap => {
+    const first = !loaded;
+    loaded = true;
+    saved = normalize(snap.val());
     updateStatus();
-    if (!dirty) fillForm(saved);
+    if (first || !dirty) {
+      fillForm(saved);
+      setDirty(false);
+    }
+    if (btnSave.textContent !== 'Publicando…') btnSave.disabled = false;
+  }, err => {
+    console.error('Firebase:', err);
+    setStatus('warn', '⚠️', 'No se pudo conectar con la base de datos.',
+      'Revisa tu conexión y las reglas de Firebase, y recarga la página.');
   });
 
-  fillForm(saved);
   updateStatus();
-})();
 </script>
 </body>
 </html>

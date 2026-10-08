@@ -102,6 +102,7 @@
   .opt:has(input:checked){background:var(--accent-soft); border-color:var(--accent)}
   .opt input:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
   .empty{color:var(--muted); font-style:italic; margin:4px 0}
+  .loading{grid-column:1/-1; text-align:center; color:var(--muted); font-style:italic; margin:18px 0}
 
   /* ---------- Pedido ---------- */
   .order{
@@ -170,7 +171,7 @@
     </article>
 
     <p class="hint">Elige tu plato principal y tu agregado 👇</p>
-    <div class="grid" id="secciones"></div>
+    <div class="grid" id="secciones"><p class="loading">Cargando el menú de hoy…</p></div>
 
     <section class="order" aria-labelledby="order-title">
       <h3 id="order-title">Tu pedido</h3>
@@ -202,9 +203,24 @@
 
 <div class="toast" id="toast" role="status"></div>
 
-<script>
-(() => {
-  const KEY = 'menuDelDia.v2';
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  /* ---------- Conexión con Firebase ---------- */
+  const firebaseConfig = {
+    apiKey: "AIzaSyB4fIq_u9YM_wrgepR5BIjvNvzd9VQ2lI",
+    authDomain: "menurestaurant-235f7.firebaseapp.com",
+    databaseURL: "https://menurestaurant-235f7-default-rtdb.firebaseio.com",
+    projectId: "menurestaurant-235f7",
+    storageBucket: "menurestaurant-235f7.firebasestorage.app",
+    messagingSenderId: "159171586731",
+    appId: "1:159171586731:web:d6de4ef7c020ff9b4de5ee",
+    measurementId: "G-TTMMN0X90E"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const menuRef = ref(db, 'menu');
 
   const THEME_COLORS = { tomate:'#B83A2A', oliva:'#56742A', mostaza:'#9A6608', berenjena:'#6A3858', canela:'#7D4A26' };
 
@@ -246,18 +262,26 @@
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
   const fechaLarga = d => cap(new Date(d).toLocaleDateString('es-CL', { weekday:'long', day:'numeric', month:'long' }));
 
-  function load() {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) {
-        const s = JSON.parse(raw);
-        return { ...DEFAULTS, ...s, info: { ...DEFAULTS.info, ...(s.info || {}) } };
-      }
-    } catch (e) {}
-    return { ...DEFAULTS, info: { ...DEFAULTS.info } };
+  // Firebase no guarda listas vacías y a veces devuelve listas como objetos {0:…, 1:…}
+  function toList(v) {
+    if (Array.isArray(v)) return v.filter(Boolean).map(String);
+    if (v && typeof v === 'object') {
+      return Object.keys(v).sort((a, b) => Number(a) - Number(b)).map(k => v[k]).filter(Boolean).map(String);
+    }
+    return [];
   }
 
-  let data = load();
+  // Convierte lo que llega de la base de datos en un menú completo
+  function normalize(s) {
+    if (!s || typeof s !== 'object') {
+      return { ...DEFAULTS, info: { ...DEFAULTS.info } };
+    }
+    const d = { ...DEFAULTS, ...s, info: { ...DEFAULTS.info, ...(s.info || {}) } };
+    CATS.forEach(c => { d[c.key] = toList(s[c.key]); });
+    return d;
+  }
+
+  let data = null;   // se llena con el primer dato que llega de Firebase
 
   function applyTheme(id) {
     const t = THEME_COLORS[id] ? id : 'tomate';
@@ -317,6 +341,10 @@
     updateSummary();
   }
 
+  function showLoadError() {
+    $('secciones').innerHTML = '<p class="loading">No pudimos cargar el menú de hoy. Revisa tu conexión y recarga la página.</p>';
+  }
+
   // Tocar de nuevo una opción elegida la desmarca
   $('secciones').addEventListener('click', e => {
     const inp = e.target.closest('input[type=radio]');
@@ -344,6 +372,7 @@
   }
 
   function updateSummary() {
+    if (!data) return;
     const sel = picks().filter(p => p.value);
     const box = $('resumen');
     box.innerHTML = '';
@@ -373,6 +402,7 @@
 
   /* ---------- Pedido por WhatsApp ---------- */
   $('btn-wa').onclick = () => {
+    if (!data) { toast('El menú aún se está cargando…'); return; }
     const sel = picks();
     const principal = sel.find(s => s.key === 'principales');
     if ((data.principales || []).length && !principal.value) {
@@ -408,19 +438,19 @@
     tt = setTimeout(() => t.classList.remove('show'), 2600);
   }
 
-  // Si admin.html publica un menú en otra pestaña de este navegador, se actualiza al instante
-  window.addEventListener('storage', e => {
-    if (e.key === KEY) { data = load(); render(); }
+  /* ---------- Menú en tiempo real ---------- */
+  // Cada vez que la familia publica desde admin.html, la carta se vuelve a dibujar sola
+  onValue(menuRef, snap => {
+    data = normalize(snap.val());
+    render();
+  }, err => {
+    console.error('Firebase:', err);
+    if (!data) showLoadError();
+    toast('Se perdió la conexión con el menú');
   });
-  // Al volver a la pestaña también se relee el menú
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { data = load(); render(); }
-  });
+
   // Si la página queda abierta pasada la medianoche, actualiza la fecha
   setInterval(() => { $('fecha').textContent = fechaLarga(Date.now()); }, 60000);
-
-  render();
-})();
 </script>
 </body>
 </html>
