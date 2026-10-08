@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>Registro de Pedidos · Recursos Humanos</title>
+<title>Registro de Pedidos por Empresa · Recursos Humanos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -13,18 +13,28 @@
   body{margin:0; background:#F5F0E8; color:#2E2219; font:400 16px/1.5 "Nunito", system-ui, sans-serif}
   
   header{background:#B83A2A; color:#fff; padding:20px 16px}
-  .wrap{max-width:900px; margin:0 auto}
+  .wrap{max-width:960px; margin:0 auto}
   header h1{margin:0; font-size:1.5rem}
   header p{margin:4px 0 0; opacity:.9; font-size:.95rem}
 
-  main{padding:20px 16px; max-width:900px; margin:0 auto}
+  main{padding:20px 16px; max-width:960px; margin:0 auto}
   
+  /* Pestañas para filtrar */
+  .tabs{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap}
+  .tab-btn{background:#E4D8C6; border:0; padding:10px 18px; border-radius:12px; font-weight:800; cursor:pointer; color:#76665A; transition:all .15s}
+  .tab-btn.active{background:#B83A2A; color:#fff}
+
   .card{background:#fff; border-radius:16px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,.08)}
   .top-card{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px}
   .top-card h2{margin:0; font-size:1.2rem}
   
   .btn-print{background:#2E2219; color:#fff; border:0; padding:10px 16px; border-radius:10px; font-weight:700; cursor:pointer}
   .btn-print:hover{opacity:.9}
+
+  .resumen-cajas{display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin-bottom:18px}
+  .caja-kpi{background:#FBF4E8; border:1px solid #E4D8C6; border-radius:12px; padding:12px; text-align:center}
+  .caja-kpi span{display:block; font-size:.82rem; color:#76665A; font-weight:700}
+  .caja-kpi strong{font-size:1.4rem; color:#B83A2A; font-weight:800}
 
   .tabla{width:100%; border-collapse:collapse; margin-top:10px; font-size:.95rem}
   .tabla th, .tabla td{padding:12px; border-bottom:1px solid #E4D8C6; text-align:left}
@@ -33,9 +43,10 @@
   
   .vacio{text-align:center; color:#76665A; font-style:italic; padding:30px 0}
   .badge{background:#E1F3E8; color:#1F7A45; padding:4px 10px; border-radius:99px; font-weight:800; font-size:.85rem}
+  .tag-empresa{background:#F2E3D4; color:#7D4A26; padding:2px 8px; border-radius:6px; font-weight:700; font-size:.8rem}
 
   @media print {
-    header, .btn-print{display:none}
+    header, .tabs, .btn-print{display:none}
     body, main, .card{background:#fff; padding:0; box-shadow:none}
   }
 </style>
@@ -44,19 +55,33 @@
 
 <header>
   <div class="wrap">
-    <h1>📋 Control de Pedidos de Almuerzo</h1>
-    <p>Panel exclusivo para Recursos Humanos y Administración</p>
+    <h1>📋 Control de Pedidos por Empresa</h1>
+    <p>Panel filtrado para Recursos Humanos y Encargados de Convenio</p>
   </div>
 </header>
 
 <main>
+  <!-- Contenedor dinámico de Pestañas -->
+  <div class="tabs" id="contenedor-tabs"></div>
+
   <div class="card">
     <div class="top-card">
       <div>
-        <h2 id="fecha-hoy">Cargando fecha…</h2>
-        <small id="cant-pedidos" style="color:#76665A; font-weight:700">0 pedidos en total</small>
+        <h2 id="titulo-filtro">Cargando pedidos…</h2>
+        <small id="fecha-hoy" style="color:#76665A; font-weight:700"></small>
       </div>
-      <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+      <button class="btn-print" onclick="window.print()">🖨️ Imprimir Lista Seleccionada</button>
+    </div>
+
+    <div class="resumen-cajas">
+      <div class="caja-kpi">
+        <span>Total Almuerzos</span>
+        <strong id="kpi-cant">0</strong>
+      </div>
+      <div class="caja-kpi">
+        <span>Total a Pagar</span>
+        <strong id="kpi-monto">$0</strong>
+      </div>
     </div>
 
     <div id="contenedor-tabla">
@@ -88,39 +113,72 @@
   const esc = v => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
   
   const hoyFecha = new Date();
-  document.getElementById('fecha-hoy').textContent = 'Pedidos del ' + hoyFecha.toLocaleDateString('es-CL', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  document.getElementById('fecha-hoy').textContent = 'Fecha: ' + hoyFecha.toLocaleDateString('es-CL', { weekday:'long', day:'numeric', month:'long' });
 
-  onValue(pedidosRef, snap => {
-    const data = snap.val();
+  let todosLosPedidosHoy = [];
+  let filtroActual = 'TODAS';
+
+  function renderTabs() {
+    const tabsCont = document.getElementById('contenedor-tabs');
+    // Obtener las empresas únicas de los pedidos de hoy
+    const empresasSet = new Set(todosLosPedidosHoy.map(p => p.empresa || 'Particular'));
+    const listaEmpresas = ['TODAS', ...Array.from(empresasSet)];
+
+    if (!listaEmpresas.includes(filtroActual)) filtroActual = 'TODAS';
+
+    let html = '';
+    listaEmpresas.forEach(emp => {
+      const active = emp === filtroActual ? 'active' : '';
+      const label = emp === 'TODAS' ? 'Ver Todos' : (emp === 'Particular' ? 'Clientes Particulares' : emp);
+      html += `<button class="tab-btn ${active}" data-empresa="${esc(emp)}">${esc(label)}</button>`;
+    });
+    tabsCont.innerHTML = html;
+  }
+
+  document.getElementById('contenedor-tabs').addEventListener('click', e => {
+    if (!e.target.classList.contains('tab-btn')) return;
+    filtroActual = e.target.dataset.empresa;
+    renderTabs();
+    renderTabla();
+  });
+
+  function renderTabla() {
     const cont = document.getElementById('contenedor-tabla');
-    const cantEl = document.getElementById('cant-pedidos');
+    const titulo = document.getElementById('titulo-filtro');
+    const kpiCant = document.getElementById('kpi-cant');
+    const kpiMonto = document.getElementById('kpi-monto');
 
-    if (!data) {
-      cont.innerHTML = '<p class="vacio">Aún no hay pedidos registrados para el día de hoy.</p>';
-      cantEl.textContent = '0 pedidos en total';
+    titulo.textContent = filtroActual === 'TODAS' 
+      ? 'Mostrando: Todos los pedidos' 
+      : (filtroActual === 'Particular' ? 'Mostrando: Clientes Particulares' : `Mostrando: Empresa ${filtroActual}`);
+
+    const listaFiltrada = filtroActual === 'TODAS' 
+      ? todosLosPedidosHoy 
+      : todosLosPedidosHoy.filter(p => (p.empresa || 'Particular') === filtroActual);
+
+    if (!listaFiltrada.length) {
+      cont.innerHTML = '<p class="vacio">No hay pedidos registrados para esta categoría hoy.</p>';
+      kpiCant.textContent = '0';
+      kpiMonto.textContent = '$0';
       return;
     }
 
-    const hoyStr = hoyFecha.toDateString();
-    const lista = Object.values(data)
-      .filter(p => new Date(p.fecha).toDateString() === hoyStr)
-      .sort((a, b) => new Date(a.fecha) - new Date(b.fecha)); // Ordenados por hora de llegada
+    const totalAlmuerzos = listaFiltrada.reduce((sum, p) => sum + (Number(p.cantidad) || 1), 0);
+    const totalMonto = listaFiltrada.reduce((sum, p) => sum + (Number(p.total) || 0), 0);
 
-    cantEl.textContent = lista.length === 1 ? '1 pedido registrado' : `${lista.length} pedidos registrados`;
+    kpiCant.textContent = totalAlmuerzos;
+    kpiMonto.textContent = clp(totalMonto);
 
-    if (!lista.length) {
-      cont.innerHTML = '<p class="vacio">Aún no hay pedidos registrados para el día de hoy.</p>';
-      return;
-    }
-
-    let html = '<table class="tabla"><thead><tr><th>N°</th><th>Hora</th><th>Trabajador / Cliente</th><th>Detalle del Pedido</th><th>Monto</th></tr></thead><tbody>';
+    let html = '<table class="tabla"><thead><tr><th>N°</th><th>Hora</th><th>Trabajador / Cliente</th><th>Empresa</th><th>Detalle del Pedido</th><th>Monto</th></tr></thead><tbody>';
     
-    lista.forEach((p, index) => {
+    listaFiltrada.forEach((p, index) => {
       const hora = new Date(p.fecha).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+      const emp = p.empresa || 'Particular';
       html += `<tr>
         <td><span class="badge">#${index + 1}</span></td>
         <td><b>${hora}</b></td>
         <td><b>${esc(p.cliente)}</b></td>
+        <td><span class="tag-empresa">${esc(emp)}</span></td>
         <td>${esc(p.detalle)} ${p.nota ? '<br><small style="color:#76665A">Obs: ' + esc(p.nota) + '</small>' : ''}</td>
         <td><b>${clp(Number(p.total) || 0)}</b></td>
       </tr>`;
@@ -128,6 +186,20 @@
 
     html += '</tbody></table>';
     cont.innerHTML = html;
+  }
+
+  onValue(pedidosRef, snap => {
+    const data = snap.val();
+    if (!data) {
+      todosLosPedidosHoy = [];
+    } else {
+      const hoyStr = hoyFecha.toDateString();
+      todosLosPedidosHoy = Object.values(data)
+        .filter(p => new Date(p.fecha).toDateString() === hoyStr)
+        .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+    }
+    renderTabs();
+    renderTabla();
   });
 </script>
 </body>

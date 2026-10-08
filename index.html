@@ -216,6 +216,10 @@
   const menuRef = ref(db, 'menu');
   const pedidosRef = ref(db, 'pedidos');
 
+  // Detectar la empresa desde la URL (ej: ?empresa=Europer)
+  const urlParams = new URLSearchParams(window.location.search);
+  const empresaDetectada = urlParams.get('empresa') || 'Particular';
+
   const THEME_COLORS = { tomate:'#B83A2A', oliva:'#56742A', mostaza:'#9A6608', berenjena:'#6A3858', canela:'#7D4A26' };
 
   const CATS = [
@@ -274,8 +278,7 @@
     $('r-direccion').textContent = data.info.direccion;
     $('r-horario').textContent = data.info.horario;
     $('fecha').textContent = fechaLarga(Date.now());
-    $('precio').textContent = clp(data.precio);
-    $('incluye').textContent = data.incluye;
+    $('precio').textContent = clp(data.precio);$('incluye').textContent = data.incluye;
     document.title = 'Menú del Día · ' + data.info.nombre;
 
     const cont = $('secciones');
@@ -362,10 +365,8 @@
     box.append(p, t);
   }
 
-  $('q-menos').onclick = () => { $('o-cant').value = Math.max(1, qty() - 1); updateSummary(); };
-  $('q-mas').onclick   = () => { $('o-cant').value = Math.min(50, qty() + 1); updateSummary(); };
-  $('o-cant').addEventListener('input', updateSummary);
-  $('o-cant').addEventListener('blur', () => { $('o-cant').value = qty(); });
+  $('q-menos').onclick = () => { $('o-cant').value = Math.max(1, qty() - 1); updateSummary(); };$('q-mas').onclick   = () => { $('o-cant').value = Math.min(50, qty() + 1); updateSummary(); };$('o-cant').addEventListener('input', updateSummary);
+  $('o-cant').addEventListener('blur', () => {$('o-cant').value = qty(); });
 
   /* ---------- Pedido por WhatsApp + Guardado en Firebase ---------- */
   $('btn-wa').onclick = () => {
@@ -386,10 +387,11 @@
     const nota = $('o-nota').value.trim();
     const n = qty();
 
-    // 1. Guardar en la base de datos para Recursos Humanos / Registro
+    // 1. Guardar en Firebase con la etiqueta automática de la empresa
     const detallePlatos = sel.filter(s => s.value).map(s => `${s.label}: ${s.value}`).join(' | ');
     const nuevoPedido = {
       cliente: nombre,
+      empresa: empresaDetectada, // <-- Se asigna automáticamente (Europer, Particular, etc.)
       cantidad: n,
       detalle: detallePlatos,
       nota: nota,
@@ -398,12 +400,13 @@
     };
     push(pedidosRef, nuevoPedido);
 
-    // 2. Construir mensaje y abrir WhatsApp
+    // 2. Construir mensaje de WhatsApp
     let msg = '¡Hola ' + data.info.nombre + '! 👋\n';
     msg += 'Quiero pedir ' + (n === 1 ? 'un almuerzo' : n + ' almuerzos') + ' del Menú del Día (' + fechaLarga(Date.now()) + '):\n\n';
     sel.filter(s => s.value).forEach(s => { msg += '• ' + s.label + ': ' + s.value + '\n'; });
     msg += '\nTotal: ' + clp(data.precio * n);
     msg += '\nNombre: ' + nombre;
+    if (empresaDetectada !== 'Particular') msg += '\nEmpresa: ' + empresaDetectada;
     if (nota) msg += '\nComentario: ' + nota;
     msg += '\n\n¡Gracias!';
 
