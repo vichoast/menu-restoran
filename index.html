@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="es" data-theme="tomate">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#B83A2A">
+<title>Menú del Día</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#FBF4E8; --paper:#FFFDF8; --ink:#2E2219; --muted:#76665A; --line:#E7D9C3;
+    --accent:#B83A2A; --accent-soft:#F8E1DA; --accent-ink:#fff;
+    --wa:#1E9E50; --wa-dark:#17803F;
+    --radius:18px; --shadow:0 2px 0 rgba(46,34,25,.05), 0 10px 30px -12px rgba(46,34,25,.25);
+  }
+  [data-theme="oliva"]    { --accent:#56742A; --accent-soft:#E6EDD7; }
+  [data-theme="mostaza"]  { --accent:#9A6608; --accent-soft:#F6E9C8; }
+  [data-theme="berenjena"]{ --accent:#6A3858; --accent-soft:#F0E0EA; }
+  [data-theme="canela"]   { --accent:#7D4A26; --accent-soft:#F2E3D4; }
+
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(circle at 15% 10%, rgba(255,255,255,.7) 0 2px, transparent 3px) 0 0/46px 46px,
+      var(--bg);
+    color:var(--ink);
+    font:400 17px/1.5 "Nunito", system-ui, sans-serif;
+    -webkit-text-size-adjust:100%;
+  }
+  h1,h2,h3{font-family:"Fraunces", Georgia, serif; line-height:1.15; margin:0}
+  button,input{font:inherit; color:inherit}
+  .wrap{max-width:720px; margin:0 auto; padding:0 16px 40px}
+
+  /* ---------- Toldo + encabezado ---------- */
+  .toldo{
+    height:26px;
+    background:repeating-linear-gradient(90deg, var(--accent) 0 32px, #fff 32px 64px);
+    position:relative;
+  }
+  .toldo::after{
+    content:""; position:absolute; left:0; right:0; top:100%; height:14px;
+    background:radial-gradient(circle at 16px 0, var(--accent) 15px, transparent 16px) 0 0/64px 14px repeat-x,
+               radial-gradient(circle at 48px 0, #fff 15px, transparent 16px) 0 0/64px 14px repeat-x;
+    filter:drop-shadow(0 3px 2px rgba(0,0,0,.08));
+  }
+  header.top{padding:36px 0 8px; text-align:center}
+  header.top h1{font-size:clamp(2rem, 8vw, 2.9rem); font-weight:800; color:var(--accent); letter-spacing:-.01em}
+  .tagline{margin:.25rem 0 1rem; color:var(--muted); font-style:italic}
+  .info{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; padding:0; margin:0; list-style:none}
+  .info li{
+    background:var(--paper); border:1px solid var(--line); border-radius:999px;
+    padding:6px 14px; font-weight:600; font-size:.95rem;
+  }
+  .info li:has(span:empty){display:none}
+
+  /* ---------- Tarjeta Menú del Día ---------- */
+  .menu-card{
+    margin:22px 0 8px; background:var(--paper); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:10px;
+  }
+  .menu-card .inner{
+    border:2px dashed var(--accent); border-radius:12px; padding:26px 18px 22px; text-align:center;
+  }
+  .ribbon{
+    display:inline-block; background:var(--accent); color:var(--accent-ink);
+    font-weight:800; letter-spacing:.08em; text-transform:uppercase; font-size:.8rem;
+    padding:6px 16px; border-radius:6px; margin-bottom:10px;
+  }
+  .menu-card h2{font-size:clamp(1.45rem, 5.6vw, 2rem)}
+  .price{
+    font-family:"Fraunces", Georgia, serif; font-weight:800; color:var(--accent);
+    font-size:clamp(2.6rem, 13vw, 3.6rem); line-height:1; margin:14px 0 6px;
+  }
+  .includes{color:var(--muted); font-weight:600; margin:0}
+
+  /* ---------- Secciones ---------- */
+  .hint{text-align:center; color:var(--muted); margin:22px 0 4px; font-weight:600}
+  .grid{display:grid; gap:14px; margin-top:12px}
+  @media (min-width:640px){ .grid{grid-template-columns:1fr 1fr} }
+  section.cat{
+    background:var(--paper); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:18px 16px 14px; border-top:6px solid var(--accent); scroll-margin-top:16px;
+    transition:box-shadow .2s;
+  }
+  section.cat.need{box-shadow:0 0 0 3px var(--accent), var(--shadow)}
+  .cat h3{font-size:1.3rem; display:flex; align-items:center; gap:8px; margin-bottom:10px}
+  .cat h3 .emo{font-size:1.4rem}
+  .opt{
+    display:flex; align-items:center; gap:12px; padding:12px; margin:6px 0;
+    border:1.5px solid var(--line); border-radius:12px; cursor:pointer;
+    font-weight:600; min-height:52px; transition:background .15s, border-color .15s;
+  }
+  .opt input{appearance:none; -webkit-appearance:none; width:24px; height:24px; flex:none; margin:0;
+    border:2px solid var(--line); border-radius:50%; background:#fff; display:grid; place-content:center; cursor:pointer}
+  .opt input::after{content:""; width:12px; height:12px; border-radius:50%; background:var(--accent); transform:scale(0); transition:transform .15s}
+  .opt input:checked{border-color:var(--accent)}
+  .opt input:checked::after{transform:scale(1)}
+  .opt:has(input:checked){background:var(--accent-soft); border-color:var(--accent)}
+  .opt input:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
+  .empty{color:var(--muted); font-style:italic; margin:4px 0}
+
+  /* ---------- Pedido ---------- */
+  .order{
+    margin:18px 0 10px; background:var(--paper); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:20px 16px;
+  }
+  .order h3{font-size:1.3rem; margin-bottom:12px}
+  .row{display:grid; gap:12px}
+  @media (min-width:640px){ .row{grid-template-columns:2fr 1fr} }
+  .lbl{display:block; font-weight:700; font-size:.95rem; margin-bottom:4px}
+  .field input{
+    width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:12px; background:#fff;
+    font-size:16px;
+  }
+  .field input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .qty{display:flex; align-items:center; border:1.5px solid var(--line); border-radius:12px; background:#fff; overflow:hidden}
+  .qty button{border:0; background:var(--accent-soft); width:48px; height:48px; font-size:1.4rem; font-weight:800; cursor:pointer; color:var(--accent)}
+  .qty input{border:0; text-align:center; font-weight:800; width:100%; padding:0; box-shadow:none !important}
+  .summary{margin:14px 0 0; padding:12px 14px; background:var(--bg); border-radius:12px; font-size:.95rem}
+  .summary b{color:var(--accent)}
+  .total{display:flex; justify-content:space-between; align-items:baseline; margin-top:6px; font-weight:800}
+  .total span:last-child{font-family:"Fraunces",Georgia,serif; font-size:1.4rem; color:var(--accent)}
+
+  .btn-wa{
+    display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
+    margin-top:16px; padding:18px 20px; border:0; border-radius:16px; cursor:pointer;
+    background:var(--wa); color:#fff; font-size:1.2rem; font-weight:800;
+    box-shadow:0 6px 0 var(--wa-dark), 0 12px 24px -10px rgba(30,158,80,.6);
+    transition:transform .08s, box-shadow .08s;
+  }
+  .btn-wa:active{transform:translateY(4px); box-shadow:0 2px 0 var(--wa-dark)}
+  .btn-wa svg{width:28px; height:28px; flex:none}
+
+  /* ---------- Aviso flotante ---------- */
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translate(-50%, 140%); z-index:50;
+    background:var(--ink); color:#fff; padding:12px 20px; border-radius:999px; font-weight:700;
+    box-shadow:0 10px 30px rgba(0,0,0,.3); transition:transform .3s; max-width:calc(100% - 32px); text-align:center;
+  }
+  .toast.show{transform:translate(-50%, 0)}
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+
+<div class="toldo" aria-hidden="true"></div>
+
+<div class="wrap">
+  <header class="top">
+    <h1 id="r-nombre">Restoran San José</h1>
+    <p class="tagline">Sabor de casa</p>
+    <ul class="info">
+      <li>📍 <span id="r-direccion"></span></li>
+      <li>🕛 <span id="r-horario"></span></li>
+    </ul>
+  </header>
+
+  <main>
+    <article class="menu-card" aria-labelledby="menu-title">
+      <div class="inner">
+        <div class="ribbon">Hecho hoy</div>
+        <h2 id="menu-title">Menú del Día · <span id="fecha"></span></h2>
+        <div class="price" id="precio"></div>
+        <p class="includes" id="incluye"></p>
+      </div>
+    </article>
+
+    <p class="hint">Elige tu plato principal y tu agregado 👇</p>
+    <div class="grid" id="secciones"></div>
+
+    <section class="order" aria-labelledby="order-title">
+      <h3 id="order-title">Tu pedido</h3>
+      <div class="row">
+        <label class="field"><span class="lbl">Tu nombre</span>
+          <input id="o-nombre" autocomplete="given-name" placeholder="Ej: Camila">
+        </label>
+        <div class="field"><span class="lbl">Cantidad</span>
+          <div class="qty">
+            <button type="button" id="q-menos" aria-label="Quitar uno">−</button>
+            <input id="o-cant" type="number" inputmode="numeric" min="1" max="50" value="1" aria-label="Cantidad de almuerzos">
+            <button type="button" id="q-mas" aria-label="Agregar uno">+</button>
+          </div>
+        </div>
+      </div>
+      <label class="field" style="display:block;margin-top:12px"><span class="lbl">Comentario (opcional)</span>
+        <input id="o-nota" placeholder="Ej: sin cebolla, retiro a las 13:30">
+      </label>
+
+      <div class="summary" id="resumen" aria-live="polite"></div>
+
+      <button class="btn-wa" id="btn-wa" type="button">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 3a13 13 0 0 0-11.2 19.6L3 29l6.6-1.7A13 13 0 1 0 16 3zm0 23.7c-2 0-3.9-.5-5.6-1.5l-.4-.2-3.9 1 1-3.8-.3-.4A10.7 10.7 0 1 1 16 26.7zm5.9-8c-.3-.2-1.9-1-2.2-1-.3-.1-.5-.2-.7.2l-1 1.2c-.2.2-.4.2-.7.1a8.8 8.8 0 0 1-4.4-3.8c-.3-.6.3-.5.9-1.7.1-.2 0-.4 0-.5l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.2 4.6 1.9.8 2.7.9 3.6.7.6-.1 1.9-.8 2.1-1.5.3-.7.3-1.4.2-1.5 0-.2-.3-.3-.6-.4z"/></svg>
+        Pedir Almuerzo por WhatsApp
+      </button>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  const KEY = 'menuDelDia.v2';
+
+  const THEME_COLORS = { tomate:'#B83A2A', oliva:'#56742A', mostaza:'#9A6608', berenjena:'#6A3858', canela:'#7D4A26' };
+
+  const CATS = [
+    { key:'principales', title:'Platos Principales',   emo:'🍲', label:'Plato principal', required:true },
+    { key:'agregados',   title:'Agregados',            emo:'🍚', label:'Agregado' },
+    { key:'entradas',    title:'Entradas / Ensaladas', emo:'🥗', label:'Entrada' },
+    { key:'postres',     title:'Postres',              emo:'🍮', label:'Postre' },
+    { key:'bebidas',     title:'Bebidas',              emo:'🥤', label:'Bebida' }
+  ];
+
+  // Menú que se muestra si la familia aún no ha publicado uno desde admin.html
+  const DEFAULTS = {
+    info: {
+      nombre: 'Restoran San José',
+      direccion: 'Av. Ejemplo 1234, Santiago',
+      horario: 'Lun a Vie · 12:30 a 16:00',
+      whatsapp: '56912345678'
+    },
+    precio: 6500,
+    incluye: 'Plato principal + agregado a elección',
+    principales: [
+      'Merluza Frita c/arroz y papas fritas',
+      'Lasaña Boloñesa',
+      'Cazuela de Cerdo',
+      'Guiso de Acelga c/papas doradas',
+      'Nuggets c/agregado',
+      'Hipocalórico (Filetitos Apanados)'
+    ],
+    agregados: ['Arroz', 'Puré de Papas', 'Papas Fritas', 'Ensaladas', 'Fideos', 'Papas Cocidas'],
+    entradas: [],
+    postres: [],
+    bebidas: [],
+    tema: 'tomate'
+  };
+
+  const $ = id => document.getElementById(id);
+  const clp = n => new Intl.NumberFormat('es-CL', { style:'currency', currency:'CLP', maximumFractionDigits:0 }).format(n || 0);
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const fechaLarga = d => cap(new Date(d).toLocaleDateString('es-CL', { weekday:'long', day:'numeric', month:'long' }));
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        return { ...DEFAULTS, ...s, info: { ...DEFAULTS.info, ...(s.info || {}) } };
+      }
+    } catch (e) {}
+    return { ...DEFAULTS, info: { ...DEFAULTS.info } };
+  }
+
+  let data = load();
+
+  function applyTheme(id) {
+    const t = THEME_COLORS[id] ? id : 'tomate';
+    document.documentElement.dataset.theme = t;
+    document.querySelector('meta[name="theme-color"]').content = THEME_COLORS[t];
+  }
+
+  function render() {
+    // Recordar lo que el cliente ya había marcado, por si el menú se actualiza mientras mira
+    const prev = {};
+    CATS.forEach(c => {
+      const el = document.querySelector('input[name="' + c.key + '"]:checked');
+      if (el) prev[c.key] = el.value;
+    });
+
+    applyTheme(data.tema);
+    $('r-nombre').textContent = data.info.nombre;
+    $('r-direccion').textContent = data.info.direccion;
+    $('r-horario').textContent = data.info.horario;
+    $('fecha').textContent = fechaLarga(Date.now());
+    $('precio').textContent = clp(data.precio);
+    $('incluye').textContent = data.incluye;
+    document.title = 'Menú del Día · ' + data.info.nombre;
+
+    const cont = $('secciones');
+    cont.innerHTML = '';
+    CATS.forEach(c => {
+      const items = data[c.key] || [];
+      if (!items.length) return;   // sección vacía: no se muestra
+      const sec = document.createElement('section');
+      sec.className = 'cat';
+      sec.id = 'sec-' + c.key;
+      const h = document.createElement('h3');
+      h.innerHTML = '<span class="emo" aria-hidden="true"></span><span></span>';
+      h.firstChild.textContent = c.emo;
+      h.lastChild.textContent = c.title;
+      sec.appendChild(h);
+
+      items.forEach(name => {
+        const lab = document.createElement('label');
+        lab.className = 'opt';
+        const inp = document.createElement('input');
+        inp.type = 'radio';
+        inp.name = c.key;
+        inp.value = name;
+        if (prev[c.key] === name || (c.required && items.length === 1)) {
+          inp.checked = true;
+          inp.dataset.was = '1';
+        }
+        const span = document.createElement('span');
+        span.textContent = name;
+        lab.append(inp, span);
+        sec.appendChild(lab);
+      });
+      cont.appendChild(sec);
+    });
+    updateSummary();
+  }
+
+  // Tocar de nuevo una opción elegida la desmarca
+  $('secciones').addEventListener('click', e => {
+    const inp = e.target.closest('input[type=radio]');
+    if (!inp) return;
+    if (inp.dataset.was === '1') {
+      inp.checked = false;
+      inp.dataset.was = '';
+    } else {
+      document.querySelectorAll('input[name="' + inp.name + '"]').forEach(x => x.dataset.was = '');
+      inp.dataset.was = '1';
+    }
+    inp.closest('.cat').classList.remove('need');
+    updateSummary();
+  });
+
+  function picks() {
+    return CATS.map(c => {
+      const el = document.querySelector('input[name="' + c.key + '"]:checked');
+      return { ...c, value: el ? el.value : null };
+    });
+  }
+  function qty() {
+    const n = parseInt($('o-cant').value, 10);
+    return Math.min(50, Math.max(1, isNaN(n) ? 1 : n));
+  }
+
+  function updateSummary() {
+    const sel = picks().filter(p => p.value);
+    const box = $('resumen');
+    box.innerHTML = '';
+    const p = document.createElement('div');
+    if (!sel.length) {
+      p.textContent = 'Aún no eliges nada. Elige al menos tu plato principal.';
+    } else {
+      sel.forEach((s, i) => {
+        if (i) p.append(' · ');
+        const b = document.createElement('b');
+        b.textContent = s.label + ': ';
+        p.append(b, s.value);
+      });
+    }
+    const t = document.createElement('div');
+    t.className = 'total';
+    t.innerHTML = '<span></span><span></span>';
+    t.firstChild.textContent = 'Total (' + qty() + (qty() === 1 ? ' almuerzo)' : ' almuerzos)');
+    t.lastChild.textContent = clp(data.precio * qty());
+    box.append(p, t);
+  }
+
+  $('q-menos').onclick = () => { $('o-cant').value = Math.max(1, qty() - 1); updateSummary(); };
+  $('q-mas').onclick   = () => { $('o-cant').value = Math.min(50, qty() + 1); updateSummary(); };
+  $('o-cant').addEventListener('input', updateSummary);
+  $('o-cant').addEventListener('blur', () => { $('o-cant').value = qty(); });
+
+  /* ---------- Pedido por WhatsApp ---------- */
+  $('btn-wa').onclick = () => {
+    const sel = picks();
+    const principal = sel.find(s => s.key === 'principales');
+    if ((data.principales || []).length && !principal.value) {
+      const sec = $('sec-principales');
+      sec.classList.add('need');
+      sec.scrollIntoView({ behavior:'smooth', block:'start' });
+      toast('Elige tu plato principal 🙂');
+      return;
+    }
+    const num = String(data.info.whatsapp || '').replace(/\D/g, '');
+    if (!num) { toast('Por ahora no es posible pedir por WhatsApp'); return; }
+
+    const nombre = $('o-nombre').value.trim();
+    const nota = $('o-nota').value.trim();
+    const n = qty();
+    let msg = '¡Hola ' + data.info.nombre + '! 👋\n';
+    msg += 'Quiero pedir ' + (n === 1 ? 'un almuerzo' : n + ' almuerzos') + ' del Menú del Día (' + fechaLarga(Date.now()) + '):\n\n';
+    sel.filter(s => s.value).forEach(s => { msg += '• ' + s.label + ': ' + s.value + '\n'; });
+    msg += '\nTotal: ' + clp(data.precio * n);
+    if (nombre) msg += '\nNombre: ' + nombre;
+    if (nota) msg += '\nComentario: ' + nota;
+    msg += '\n\n¡Gracias!';
+
+    window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+  };
+
+  let tt;
+  function toast(text) {
+    const t = $('toast');
+    t.textContent = text;
+    t.classList.add('show');
+    clearTimeout(tt);
+    tt = setTimeout(() => t.classList.remove('show'), 2600);
+  }
+
+  // Si admin.html publica un menú en otra pestaña de este navegador, se actualiza al instante
+  window.addEventListener('storage', e => {
+    if (e.key === KEY) { data = load(); render(); }
+  });
+  // Al volver a la pestaña también se relee el menú
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) { data = load(); render(); }
+  });
+  // Si la página queda abierta pasada la medianoche, actualiza la fecha
+  setInterval(() => { $('fecha').textContent = fechaLarga(Date.now()); }, 60000);
+
+  render();
+})();
+</script>
+</body>
+</html>
