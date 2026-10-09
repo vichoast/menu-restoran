@@ -129,6 +129,7 @@
     transition:transform .08s, box-shadow .08s;
   }
   .btn-wa:active{transform:translateY(4px); box-shadow:0 2px 0 var(--wa-dark)}
+  .btn-wa:disabled{opacity:.65; cursor:wait; transform:none; box-shadow:0 6px 0 var(--wa-dark)}
   .btn-wa svg{width:28px; height:28px; flex:none}
 
   .toast{
@@ -189,7 +190,7 @@
 
       <button class="btn-wa" id="btn-wa" type="button">
         <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 3a13 13 0 0 0-11.2 19.6L3 29l6.6-1.7A13 13 0 1 0 16 3zm0 23.7c-2 0-3.9-.5-5.6-1.5l-.4-.2-3.9 1 1-3.8-.3-.4A10.7 10.7 0 1 1 16 26.7zm5.9-8c-.3-.2-1.9-1-2.2-1-.3-.1-.5-.2-.7.2l-1 1.2c-.2.2-.4.2-.7.1a8.8 8.8 0 0 1-4.4-3.8c-.3-.6.3-.5.9-1.7.1-.2 0-.4 0-.5l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.2 4.6 1.9.8 2.7.9 3.6.7.6-.1 1.9-.8 2.1-1.5.3-.7.3-1.4.2-1.5 0-.2-.3-.3-.6-.4z"/></svg>
-        Pedir Almuerzo por WhatsApp
+        <span id="btn-wa-txt">Pedir Almuerzo por WhatsApp</span>
       </button>
     </section>
   </main>
@@ -202,7 +203,7 @@
   import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyB4fIq_u9YM_wrgepR5BIjvNvzd9VQ2lI",
+    apiKey: "AIzaSyB4fIq_u9YM_wrkgepR5BIjvNvzd9VQ2lI",
     authDomain: "menurestaurant-235f7.firebaseapp.com",
     databaseURL: "https://menurestaurant-235f7-default-rtdb.firebaseio.com",
     projectId: "menurestaurant-235f7",
@@ -278,7 +279,8 @@
     $('r-direccion').textContent = data.info.direccion;
     $('r-horario').textContent = data.info.horario;
     $('fecha').textContent = fechaLarga(Date.now());
-    $('precio').textContent = clp(data.precio);$('incluye').textContent = data.incluye;
+    $('precio').textContent = clp(data.precio);
+    $('incluye').textContent = data.incluye;
     document.title = 'Menú del Día · ' + data.info.nombre;
 
     const cont = $('secciones');
@@ -365,11 +367,40 @@
     box.append(p, t);
   }
 
-  $('q-menos').onclick = () => { $('o-cant').value = Math.max(1, qty() - 1); updateSummary(); };$('q-mas').onclick   = () => { $('o-cant').value = Math.min(50, qty() + 1); updateSummary(); };$('o-cant').addEventListener('input', updateSummary);
-  $('o-cant').addEventListener('blur', () => {$('o-cant').value = qty(); });
+  $('q-menos').onclick = () => { $('o-cant').value = Math.max(1, qty() - 1); updateSummary(); };
+  $('q-mas').onclick   = () => { $('o-cant').value = Math.min(50, qty() + 1); updateSummary(); };
+  $('o-cant').addEventListener('input', updateSummary);
+  $('o-cant').addEventListener('blur', () => { $('o-cant').value = qty(); });
+
+  /* ---------- Protección anti doble clic y anti duplicados ---------- */
+  const BLOQUEO_MS = 3000;          // el botón se bloquea 3 s tras cada envío (evita dobles clics por lag)
+  const DUPLICADO_MS = 60 * 1000;   // alerta si el mismo pedido se repite en menos de 1 minuto
+  const ULTIMO_KEY = 'ultimoPedido';
+  let enviando = false;
+
+  const huella = (cliente, detalle) => (cliente + '||' + detalle).toLowerCase().replace(/\s+/g, ' ').trim();
+
+  function leerUltimo() {
+    try { return JSON.parse(localStorage.getItem(ULTIMO_KEY) || 'null'); } catch (e) { return null; }
+  }
+  function guardarUltimo(h) {
+    try { localStorage.setItem(ULTIMO_KEY, JSON.stringify({ h, t: Date.now() })); } catch (e) {}
+  }
+
+  function bloquearBoton() {
+    enviando = true;
+    $('btn-wa').disabled = true;
+    $('btn-wa-txt').textContent = 'Enviando pedido…';
+    setTimeout(() => {
+      enviando = false;
+      $('btn-wa').disabled = false;
+      $('btn-wa-txt').textContent = 'Pedir Almuerzo por WhatsApp';
+    }, BLOQUEO_MS);
+  }
 
   /* ---------- Pedido por WhatsApp + Guardado en Firebase ---------- */
   $('btn-wa').onclick = () => {
+    if (enviando) return;
     if (!data) { toast('El menú aún se está cargando…'); return; }
     const sel = picks();
     const principal = sel.find(s => s.key === 'principales');
@@ -386,9 +417,19 @@
     const nombre = $('o-nombre').value.trim() || 'Anónimo / Sin nombre';
     const nota = $('o-nota').value.trim();
     const n = qty();
-
-    // 1. Guardar en Firebase con la etiqueta automática de la empresa
     const detallePlatos = sel.filter(s => s.value).map(s => `${s.label}: ${s.value}`).join(' | ');
+
+    // Verificación rápida: mismo cliente + mismo detalle en menos de 1 minuto
+    const h = huella(nombre, detallePlatos);
+    const ultimo = leerUltimo();
+    if (ultimo && ultimo.h === h && Date.now() - ultimo.t < DUPLICADO_MS) {
+      const ok = confirm('Parece que ya enviaste este mismo pedido hace menos de un minuto.\n\n¿Quieres enviarlo otra vez? (Se registrará como un pedido nuevo)');
+      if (!ok) { toast('Pedido no repetido 👍'); return; }
+    }
+
+    bloquearBoton();
+
+    // 1. Guardar en Firebase, ya confirmado (cuenta de inmediato en el reporte)
     const nuevoPedido = {
       cliente: nombre,
       empresa: empresaDetectada, // <-- Se asigna automáticamente (Europer, Particular, etc.)
@@ -396,10 +437,15 @@
       detalle: detallePlatos,
       nota: nota,
       total: data.precio * n,
-      estado: 'pendiente',       // la caja lo confirma en admin.html cuando llega el WhatsApp
+      estado: 'confirmado',      // si el cliente cancela por WhatsApp, se anula en admin.html
       fecha: new Date().toISOString()
     };
-    push(pedidosRef, nuevoPedido).catch(err => console.error('No se pudo registrar el pedido:', err));
+    guardarUltimo(h);
+    push(pedidosRef, nuevoPedido).catch(err => {
+      console.error('No se pudo registrar el pedido:', err);
+      try { localStorage.removeItem(ULTIMO_KEY); } catch (e) {}
+      toast('No se pudo registrar el pedido. Envía igual el WhatsApp 🙏');
+    });
 
     // 2. Construir mensaje de WhatsApp
     let msg = '¡Hola ' + data.info.nombre + '! 👋\n';
@@ -411,7 +457,13 @@
     if (nota) msg += '\nComentario: ' + nota;
     msg += '\n\n¡Gracias!';
 
-    window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+    // 3. Abrir WhatsApp (si el navegador bloquea la ventana nueva, abre en la misma pestaña)
+    const url = 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg);
+    // (sin 'noopener' en open(): con esa opción el navegador siempre devuelve null)
+    const win = window.open(url, '_blank');
+    if (win) win.opener = null;
+    else location.href = url;
+    toast('¡Pedido registrado! ✅');
   };
 
   let tt;

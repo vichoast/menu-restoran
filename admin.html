@@ -247,7 +247,7 @@
         <select id="ticket-ancho"><option value="80">80 mm</option><option value="58">58 mm</option></select>
       </label>
     </div>
-    <p class="sub">Confirma cada pedido cuando llegue el WhatsApp del cliente. Borra los que nunca llegaron. Solo los confirmados cuentan en el reporte.</p>
+    <p class="sub">Los pedidos llegan confirmados automáticamente desde la página. Si un cliente cancela por WhatsApp, usa <b>Anular / Borrar</b> y dejará de contar en el reporte.</p>
     <p class="ped-resumen" id="pedidos-resumen"></p>
     <div id="contenedor-pedidos">
       <p class="pedidos-vacio">Cargando lista de pedidos…</p>
@@ -394,8 +394,9 @@
     const cont = $('contenedor-pedidos');
     const lista = Object.entries(pedidosHoy).sort((a, b) => new Date(b[1].fecha) - new Date(a[1].fecha));
     const pend = lista.filter(([, p]) => estadoDe(p) === 'pendiente').length;
+    const conf = lista.length - pend;
     $('pedidos-resumen').textContent = lista.length
-      ? `${pend} por confirmar · ${lista.length - pend} confirmado${lista.length - pend === 1 ? '' : 's'}`
+      ? `${conf} confirmado${conf === 1 ? '' : 's'}` + (pend ? ` · ${pend} antiguo${pend === 1 ? '' : 's'} por confirmar` : '')
       : '';
 
     if (!lista.length) {
@@ -407,11 +408,11 @@
       const est = estadoDe(p);
       const emp = p.empresa || 'Particular';
       const detalle = String(p.detalle || '').split(' | ').filter(Boolean).map(esc).join('<br>');
+      // Pedidos nuevos llegan 'confirmado'. Solo los antiguos sin estado muestran "Confirmar".
+      const anular = `<button class="p-btn del" data-acc="borrar" data-id="${esc(id)}">🗑️ Anular / Borrar</button>`;
       const acciones = est === 'pendiente'
-        ? `<button class="p-btn ok" data-acc="confirmar" data-id="${esc(id)}">✅ Confirmar</button>
-           <button class="p-btn del" data-acc="borrar" data-id="${esc(id)}">🗑️ Borrar</button>`
-        : `<button class="p-btn tk" data-acc="ticket" data-id="${esc(id)}">🖨️ Ticket</button>
-           <button class="p-btn del" data-acc="borrar" data-id="${esc(id)}">🗑️ Borrar</button>`;
+        ? `<button class="p-btn ok" data-acc="confirmar" data-id="${esc(id)}">✅ Confirmar</button>${anular}`
+        : `<button class="p-btn tk" data-acc="ticket" data-id="${esc(id)}">🖨️ Ticket</button>${anular}`;
       return `<article class="pedido ${est}">
         <div class="p-top">
           <span class="p-hora">${horaDe(p.fecha)}</span>
@@ -473,12 +474,12 @@
     }
 
     if (btn.dataset.acc === 'borrar') {
-      const extra = estadoDe(p) === 'confirmado' ? '\nOjo: este pedido ya estaba confirmado y dejará de contar en el reporte.' : '';
-      if (!confirm('¿Borrar el pedido de ' + (p.cliente || 'este cliente') + '?' + extra)) return;
+      const extra = estadoDe(p) === 'confirmado' ? '\nDejará de contar en el reporte de Recursos Humanos.' : '';
+      if (!confirm('¿Anular el pedido de ' + (p.cliente || 'este cliente') + '?' + extra)) return;
       btn.disabled = true;
       remove(pRef)
-        .then(() => toast('Pedido borrado'))
-        .catch(err => { console.error(err); btn.disabled = false; toast('No se pudo borrar. Intenta de nuevo.'); });
+        .then(() => toast('Pedido anulado'))
+        .catch(err => { console.error(err); btn.disabled = false; toast('No se pudo anular. Intenta de nuevo.'); });
     }
 
     if (btn.dataset.acc === 'ticket') imprimirTicket(id, p);
