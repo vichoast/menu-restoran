@@ -124,16 +124,14 @@
   @media print{
     body.print-ticket{background:#fff; margin:0}
     body.print-ticket > *:not(#ticket){display:none !important}
-    body.print-ticket #ticket{display:block; color:#000; font:12px/1.35 "Courier New", ui-monospace, monospace; padding:3mm 3mm 6mm}
+    body.print-ticket #ticket{display:block; color:#000; font:12px/1.35 "Courier New", ui-monospace, monospace; padding:2mm 3mm 4mm}
     #ticket.w80{width:80mm} #ticket.w58{width:58mm; font-size:11px}
-    #ticket .t-c{text-align:center}
-    #ticket .t-big{font-weight:700; font-size:1.25em}
-    #ticket .t-small{font-size:.85em}
-    #ticket .t-lbl{font-size:.85em; text-transform:uppercase; margin-top:3px}
-    #ticket .t-row{display:flex; justify-content:space-between; gap:8px}
-    #ticket .t-item{padding-left:2mm; text-indent:-2mm}
+    #ticket .t-cli{font-weight:700; font-size:1.6em; line-height:1.15}
+    #ticket .t-emp{font-size:1em}
+    #ticket .t-cant{font-weight:700; font-size:1.2em; margin-bottom:2px}
+    #ticket .t-item{font-size:1.1em; padding-left:3mm; text-indent:-3mm}
     #ticket .t-item::before{content:"- "}
-    #ticket .t-obs{font-weight:700}
+    #ticket .t-obs{font-weight:700; font-size:1.1em; margin-top:5px; border:1px solid #000; padding:2px 4px}
     #ticket .t-sep{border-top:1px dashed #000; margin:5px 0}
   }
 
@@ -495,33 +493,21 @@
     try { localStorage.setItem(ANCHO_KEY, ancho); } catch (err) {}
   });
 
+  // Ticket corto para cocina: solo quién pidió y qué pidió (sin local, precios ni totales)
   function imprimirTicket(id, p) {
-    const nombreLocal = (saved && saved.info && saved.info.nombre) || DEFAULTS.info.nombre;
-    const f = new Date(p.fecha);
-    const fecha = f.toLocaleDateString('es-CL', { day:'2-digit', month:'2-digit', year:'numeric' });
+    const cant = Number(p.cantidad) || 1;
     const platos = String(p.detalle || '').split(' | ').filter(Boolean)
       .map(l => '<div class="t-item">' + esc(l) + '</div>').join('');
 
     const t = $('ticket');
     t.className = 'w' + ancho;
     t.innerHTML = `
-      <div class="t-c t-big">${esc(nombreLocal)}</div>
-      <div class="t-c">COMANDA DE COCINA</div>
+      <div class="t-cli">${esc(p.cliente || 'Sin nombre')}</div>
+      <div class="t-emp">(${esc(p.empresa || 'Particular')})</div>
       <div class="t-sep"></div>
-      <div class="t-row"><span>Fecha</span><span>${fecha}</span></div>
-      <div class="t-row"><span>Hora</span><span>${horaDe(p.fecha)}</span></div>
-      <div class="t-row"><span>Pedido</span><span>#${esc(String(id).slice(-5).toUpperCase())}</span></div>
-      <div class="t-sep"></div>
-      <div class="t-lbl">Cliente</div><div class="t-big">${esc(p.cliente || 'Sin nombre')}</div>
-      <div class="t-lbl">Empresa</div><div>${esc(p.empresa || 'Particular')}</div>
-      <div class="t-sep"></div>
-      <div class="t-big">CANT: ${Number(p.cantidad) || 1}</div>
+      ${cant > 1 ? '<div class="t-cant">' + cant + ' ALMUERZOS</div>' : ''}
       ${platos}
-      ${p.nota ? '<div class="t-sep"></div><div class="t-lbl">Observaciones</div><div class="t-obs">' + esc(p.nota) + '</div>' : ''}
-      <div class="t-sep"></div>
-      <div class="t-row t-big"><span>TOTAL</span><span>${clp(Number(p.total) || 0)}</span></div>
-      <div class="t-sep"></div>
-      <div class="t-c t-small">Impreso ${horaDe(Date.now())}</div>`;
+      ${p.nota ? '<div class="t-obs">Obs: ' + esc(p.nota) + '</div>' : ''}`;
 
     // Tamaño de papel para la impresora térmica
     $('ticket-page').textContent = `@media print{ @page{ size:${ancho}mm auto; margin:0 } }`;
