@@ -45,9 +45,17 @@
   .vacio{text-align:center; color:#76665A; font-style:italic; padding:30px 0}
   .badge{background:#E1F3E8; color:#1F7A45; padding:4px 10px; border-radius:99px; font-weight:800; font-size:.85rem}
   .tag-empresa{background:#F2E3D4; color:#7D4A26; padding:2px 8px; border-radius:6px; font-weight:700; font-size:.8rem}
+  /* Cantidad de almuerzos por pedido */
+  .tabla .c-cant, .tabla .c-monto{text-align:center; white-space:nowrap}
+  .tabla .c-monto{text-align:right}
+  .cant{display:inline-block; min-width:2.6em; padding:3px 8px; border-radius:8px; font-weight:800; font-size:.95rem; background:#F1ECE4; color:#76665A; text-align:center}
+  .cant.multi{background:#B83A2A; color:#fff}
+  .unit{display:block; font-size:.78rem; color:#76665A; font-weight:700}
+  .tabla-wrap{overflow-x:auto}
 
   @media print {
     header, .tabs, .btn-print, .login{display:none !important}
+    .cant, .cant.multi{background:none !important; color:#000 !important; border:1.5px solid #000; -webkit-print-color-adjust:exact}
     body, main, .card{background:#fff; padding:0; box-shadow:none}
   }
 
@@ -212,22 +220,26 @@
     kpiCant.textContent = totalAlmuerzos;
     kpiMonto.textContent = clp(totalMonto);
 
-    let html = '<table class="tabla"><thead><tr><th>N°</th><th>Hora</th><th>Trabajador / Cliente</th><th>Empresa</th><th>Detalle del Pedido</th><th>Monto</th></tr></thead><tbody>';
+    let html = '<div class="tabla-wrap"><table class="tabla"><thead><tr><th>N°</th><th>Hora</th><th>Trabajador / Cliente</th><th>Empresa</th><th>Detalle del Pedido</th><th class="c-cant">Cant.</th><th class="c-monto">Monto</th></tr></thead><tbody>';
 
     listaFiltrada.forEach((p, index) => {
       const hora = new Date(p.fecha).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
       const emp = p.empresa || 'Particular';
+      const cant = Number(p.cantidad) || 1;
+      const total = Number(p.total) || 0;
+      const unit = cant > 1 ? `<span class="unit">${cant} × ${clp(Math.round(total / cant))}</span>` : '';
       html += `<tr>
         <td><span class="badge">#${index + 1}</span></td>
         <td><b>${hora}</b></td>
         <td><b>${esc(p.cliente)}</b></td>
         <td><span class="tag-empresa">${esc(emp)}</span></td>
         <td>${esc(p.detalle)} ${p.nota ? '<br><small style="color:#76665A">Obs: ' + esc(p.nota) + '</small>' : ''}</td>
-        <td><b>${clp(Number(p.total) || 0)}</b></td>
+        <td class="c-cant"><span class="cant${cant > 1 ? ' multi' : ''}">${cant}x</span></td>
+        <td class="c-monto"><b>${clp(total)}</b>${unit}</td>
       </tr>`;
     });
 
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     cont.innerHTML = html;
   }
 
