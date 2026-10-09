@@ -91,9 +91,93 @@
     background:var(--ink); color:#fff; padding:12px 20px; border-radius:999px; font-weight:700; pointer-events:none;
     box-shadow:0 10px 30px rgba(0,0,0,.3); transition:transform .3s, opacity .3s; max-width:calc(100% - 32px); text-align:center}
   .toast.show{transform:translate(-50%, 0); opacity:1}
+  /* Pedidos con estado (Anti-Ghost Orders) */
+  .ped-head{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap}
+  .ancho{font-size:.85rem; font-weight:700; color:var(--muted); display:flex; align-items:center; gap:6px}
+  .ancho select{font:inherit; padding:6px 8px; border:1.5px solid var(--line); border-radius:8px; background:#fff; color:var(--ink)}
+  .ped-resumen{margin:-6px 0 10px; font-weight:800; font-size:.9rem; color:var(--muted)}
+  #contenedor-pedidos{display:grid; gap:10px}
+  .pedido{border:1.5px solid var(--line); border-left:6px solid; border-radius:12px; padding:12px 14px}
+  .pedido.pendiente{border-left-color:#E0A800; background:#FFFBEA}
+  .pedido.confirmado{border-left-color:var(--ok); background:#F4FBF6}
+  .p-top{display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px}
+  .p-hora{font-weight:800; color:var(--muted); font-variant-numeric:tabular-nums}
+  .p-cli{font-size:1.05rem}
+  .tag-emp{background:#F2E3D4; color:#7D4A26; padding:2px 8px; border-radius:6px; font-weight:700; font-size:.78rem}
+  .p-estado{margin-left:auto; padding:3px 10px; border-radius:99px; font-weight:800; font-size:.78rem}
+  .pendiente .p-estado{background:#FFE58A; color:#6B5300}
+  .confirmado .p-estado{background:var(--ok-soft); color:var(--ok)}
+  .p-det{margin:8px 0; font-size:.95rem}
+  .p-nota{color:var(--muted); font-size:.88rem; font-style:italic; margin-top:2px}
+  .p-bot{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap}
+  .p-tot{color:var(--muted); font-weight:700}
+  .p-tot b{color:var(--ink)}
+  .p-acc{display:flex; gap:8px; flex-wrap:wrap}
+  .p-btn{border:1.5px solid var(--line); background:#fff; border-radius:10px; padding:9px 12px; font-weight:800; cursor:pointer; min-height:42px}
+  .p-btn.ok{background:var(--ok); border-color:var(--ok); color:#fff}
+  .p-btn.tk{background:var(--ink); border-color:var(--ink); color:#fff}
+  .p-btn.del:hover{border-color:#B83A2A; color:#B83A2A}
+  .p-btn:disabled{opacity:.5; cursor:wait}
+
+  /* Ticket térmico: solo se ve al imprimir */
+  #ticket{display:none}
+  @media print{
+    body.print-ticket{background:#fff; margin:0}
+    body.print-ticket > *:not(#ticket){display:none !important}
+    body.print-ticket #ticket{display:block; color:#000; font:12px/1.35 "Courier New", ui-monospace, monospace; padding:3mm 3mm 6mm}
+    #ticket.w80{width:80mm} #ticket.w58{width:58mm; font-size:11px}
+    #ticket .t-c{text-align:center}
+    #ticket .t-big{font-weight:700; font-size:1.25em}
+    #ticket .t-small{font-size:.85em}
+    #ticket .t-lbl{font-size:.85em; text-transform:uppercase; margin-top:3px}
+    #ticket .t-row{display:flex; justify-content:space-between; gap:8px}
+    #ticket .t-item{padding-left:2mm; text-indent:-2mm}
+    #ticket .t-item::before{content:"- "}
+    #ticket .t-obs{font-weight:700}
+    #ticket .t-sep{border-top:1px dashed #000; margin:5px 0}
+  }
+
+  /* ---------- Ingreso con correo y clave ---------- */
+  body:not(.authed) > *:not(.login):not(script):not(style){display:none !important}
+  body.authed .login{display:none}
+  .login{position:fixed; inset:0; z-index:100; background:#F5F0E8; display:grid; place-items:center; padding:16px; overflow:auto}
+  .login-wait{display:none; color:#76665A; font-weight:700}
+  .login.checking .login-wait{display:block}
+  .login.checking .login-card{display:none}
+  .login-card{width:100%; max-width:380px; background:#fff; border-radius:18px; padding:26px 22px; box-shadow:0 10px 40px -12px rgba(46,34,25,.35); display:grid; gap:12px}
+  .login-logo{width:52px; height:52px; border-radius:14px; background:#B83A2A; color:#fff; display:grid; place-items:center; font-size:1.5rem}
+  .login-card h1{margin:0; font-size:1.4rem; color:#2E2219}
+  .login-sub{margin:-6px 0 4px; color:#76665A; font-size:.92rem}
+  .login-field{display:grid; gap:5px; font-weight:700; font-size:.92rem; color:#2E2219}
+  .login-field input{font:inherit; font-weight:400; font-size:16px; padding:12px 13px; border:1.5px solid #E4D8C6; border-radius:11px; background:#fff; color:#2E2219}
+  .login-field input:focus{outline:none; border-color:#B83A2A; box-shadow:0 0 0 3px rgba(184,58,42,.15)}
+  .login-err{margin:0; min-height:1.2em; color:#B83A2A; font-weight:700; font-size:.9rem}
+  .login-err.ok{color:#1F7A45}
+  .login-btn{font:inherit; font-weight:800; font-size:1.05rem; border:0; border-radius:12px; padding:14px; background:#B83A2A; color:#fff; cursor:pointer}
+  .login-btn:disabled{opacity:.6; cursor:wait}
+  .login-link{font:inherit; font-size:.88rem; font-weight:700; border:0; background:none; color:#76665A; text-decoration:underline; cursor:pointer; justify-self:center; padding:4px}
+  .logout{font:inherit; font-weight:800; font-size:.88rem; border:1.5px solid rgba(255,255,255,.55); background:rgba(255,255,255,.12); color:#fff; border-radius:10px; padding:8px 14px; cursor:pointer; margin-left:auto; flex:none}
+  .logout:hover{background:rgba(255,255,255,.25)}
 </style>
 </head>
 <body>
+
+<!-- Pantalla de ingreso -->
+<div class="login checking" id="login">
+  <p class="login-wait">Comprobando sesión…</p>
+  <form class="login-card" id="login-form" novalidate>
+    <div class="login-logo" aria-hidden="true">🔒</div>
+    <h1>Panel de la familia</h1>
+    <p class="login-sub">Ingresa para editar el menú y confirmar pedidos.</p>
+    <label class="login-field"><span>Correo</span>
+      <input id="login-email" type="email" autocomplete="username" inputmode="email" required></label>
+    <label class="login-field"><span>Clave</span>
+      <input id="login-pass" type="password" autocomplete="current-password" required></label>
+    <p class="login-err" id="login-err" role="alert"></p>
+    <button class="login-btn" id="login-btn" type="submit">Entrar</button>
+    <button class="login-link" id="login-reset" type="button">¿Olvidaste tu clave?</button>
+  </form>
+</div>
 
 <header class="topbar">
   <div class="in">
@@ -102,6 +186,7 @@
       <h1>Editar Menú de Hoy</h1>
       <p id="t-nombre">Restoran San José · Panel de la familia</p>
     </div>
+    <button class="logout" id="btn-logout" type="button">Salir</button>
   </div>
 </header>
 
@@ -156,8 +241,14 @@
 
   <!-- NUEVA SECCIÓN DE REPORTES EN VIVO -->
   <section class="card">
-    <h2>📋 Pedidos Registrados Hoy</h2>
-    <p class="sub">Se actualiza en tiempo real cuando alguien envía un pedido desde la web.</p>
+    <div class="ped-head">
+      <h2>📋 Pedidos Recibidos Hoy</h2>
+      <label class="ancho">Ticket
+        <select id="ticket-ancho"><option value="80">80 mm</option><option value="58">58 mm</option></select>
+      </label>
+    </div>
+    <p class="sub">Confirma cada pedido cuando llegue el WhatsApp del cliente. Borra los que nunca llegaron. Solo los confirmados cuentan en el reporte.</p>
+    <p class="ped-resumen" id="pedidos-resumen"></p>
     <div id="contenedor-pedidos">
       <p class="pedidos-vacio">Cargando lista de pedidos…</p>
     </div>
@@ -172,11 +263,16 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<!-- Comanda que se imprime en la impresora térmica -->
+<div id="ticket" aria-hidden="true"></div>
+<style id="ticket-page"></style>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, onValue, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyB4fIq_u9YM_wrgepR5BIjvNvzd9VQ2lI",
@@ -261,6 +357,7 @@
   }
 
   document.querySelector('main').addEventListener('input', e => {
+    if (e.target.id === 'ticket-ancho') return;   // el ancho del ticket no es parte del menú
     if (e.target.name === 'tema') applyTheme(e.target.value);
     setDirty(true);
   });
@@ -276,38 +373,161 @@
     if (!dirty) fillForm(saved);
   });
 
-  // Cargar Pedidos en tiempo real para RRHH
-  onValue(pedidosRef, snap => {
-    const data = snap.val();
-    const cont = $('contenedor-pedidos');
-    if (!data) {
-      cont.innerHTML = '<p class="pedidos-vacio">Aún no hay pedidos registrados hoy.</p>';
-      return;
-    }
+  /* ---------- Avisos ---------- */
+  let tt;
+  function toast(text) {
+    const t = $('toast');
+    t.textContent = text;
+    t.classList.add('show');
+    clearTimeout(tt);
+    tt = setTimeout(() => t.classList.remove('show'), 2800);
+  }
 
-    const hoy = new Date().toDateString();
-    const lista = Object.values(data)
-      .filter(p => new Date(p.fecha).toDateString() === hoy)
-      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  const horaDe = f => new Date(f).toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit', hourCycle:'h23' });
+
+  /* ---------- Pedidos de hoy (Anti-Ghost Orders) ---------- */
+  // Los pedidos antiguos sin "estado" se tratan como pendientes
+  const estadoDe = p => p.estado === 'confirmado' ? 'confirmado' : 'pendiente';
+  let pedidosHoy = {};   // id -> pedido
+
+  function renderPedidos() {
+    const cont = $('contenedor-pedidos');
+    const lista = Object.entries(pedidosHoy).sort((a, b) => new Date(b[1].fecha) - new Date(a[1].fecha));
+    const pend = lista.filter(([, p]) => estadoDe(p) === 'pendiente').length;
+    $('pedidos-resumen').textContent = lista.length
+      ? `${pend} por confirmar · ${lista.length - pend} confirmado${lista.length - pend === 1 ? '' : 's'}`
+      : '';
 
     if (!lista.length) {
-      cont.innerHTML = '<p class="pedidos-vacio">Aún no hay pedidos registrados hoy.</p>';
+      cont.innerHTML = '<p class="pedidos-vacio">Aún no hay pedidos recibidos hoy.</p>';
       return;
     }
 
-    let html = '<table class="tabla-pedidos"><thead><tr><th>Hora</th><th>Cliente</th><th>Detalle</th><th>Total</th></tr></thead><tbody>';
-    lista.forEach(p => {
-      const hora = new Date(p.fecha).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
-      html += `<tr>
-        <td><b>${hora}</b></td>
-        <td><b>${esc(p.cliente)}</b></td>
-        <td>${esc(p.detalle)} ${p.nota ? '<i>(' + esc(p.nota) + ')</i>' : ''}</td>
-        <td>${clp(Number(p.total) || 0)}</td>
-      </tr>`;
+    cont.innerHTML = lista.map(([id, p]) => {
+      const est = estadoDe(p);
+      const emp = p.empresa || 'Particular';
+      const detalle = String(p.detalle || '').split(' | ').filter(Boolean).map(esc).join('<br>');
+      const acciones = est === 'pendiente'
+        ? `<button class="p-btn ok" data-acc="confirmar" data-id="${esc(id)}">✅ Confirmar</button>
+           <button class="p-btn del" data-acc="borrar" data-id="${esc(id)}">🗑️ Borrar</button>`
+        : `<button class="p-btn tk" data-acc="ticket" data-id="${esc(id)}">🖨️ Ticket</button>
+           <button class="p-btn del" data-acc="borrar" data-id="${esc(id)}">🗑️ Borrar</button>`;
+      return `<article class="pedido ${est}">
+        <div class="p-top">
+          <span class="p-hora">${horaDe(p.fecha)}</span>
+          <b class="p-cli">${esc(p.cliente)}</b>
+          <span class="tag-emp">${esc(emp)}</span>
+          <span class="p-estado">${est === 'pendiente' ? 'Por Confirmar' : 'Confirmado'}</span>
+        </div>
+        <div class="p-det">${detalle}${p.nota ? '<div class="p-nota">Obs: ' + esc(p.nota) + '</div>' : ''}</div>
+        <div class="p-bot">
+          <span class="p-tot">${Number(p.cantidad) || 1} × · <b>${clp(Number(p.total) || 0)}</b></span>
+          <div class="p-acc">${acciones}</div>
+        </div>
+      </article>`;
+    }).join('');
+  }
+
+  let dejarDeEscucharPedidos = null;
+
+  function escucharPedidos(user) {
+    if (dejarDeEscucharPedidos) dejarDeEscucharPedidos();
+    $('contenedor-pedidos').innerHTML = '<p class="pedidos-vacio">Cargando pedidos…</p>';
+    dejarDeEscucharPedidos = onValue(pedidosRef, snap => {
+      const data = snap.val() || {};
+      const hoy = new Date().toDateString();
+      pedidosHoy = {};
+      Object.entries(data).forEach(([id, p]) => {
+        if (p && new Date(p.fecha).toDateString() === hoy) pedidosHoy[id] = p;
+      });
+      renderPedidos();
+    }, err => {
+      console.error('Firebase:', err);
+      $('contenedor-pedidos').innerHTML = '<p class="pedidos-vacio">' + (esPermiso(err)
+        ? sinPermisoHTML(user)
+        : 'No se pudieron cargar los pedidos. Revisa la conexión y recarga la página.') + '</p>';
     });
-    html += '</tbody></table>';
-    cont.innerHTML = html;
+  }
+
+  function dejarPedidos() {
+    if (dejarDeEscucharPedidos) dejarDeEscucharPedidos();
+    dejarDeEscucharPedidos = null;
+    pedidosHoy = {};
+    $('contenedor-pedidos').innerHTML = '';
+    $('pedidos-resumen').textContent = '';
+  }
+
+  $('contenedor-pedidos').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-acc]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const p = pedidosHoy[id];
+    if (!p) return;
+    const pRef = ref(db, 'pedidos/' + id);
+
+    if (btn.dataset.acc === 'confirmar') {
+      btn.disabled = true;
+      update(pRef, { estado: 'confirmado', confirmadoEn: new Date().toISOString() })
+        .then(() => toast('Pedido de ' + (p.cliente || 'cliente') + ' confirmado ✅'))
+        .catch(err => { console.error(err); btn.disabled = false; toast('No se pudo confirmar. Intenta de nuevo.'); });
+    }
+
+    if (btn.dataset.acc === 'borrar') {
+      const extra = estadoDe(p) === 'confirmado' ? '\nOjo: este pedido ya estaba confirmado y dejará de contar en el reporte.' : '';
+      if (!confirm('¿Borrar el pedido de ' + (p.cliente || 'este cliente') + '?' + extra)) return;
+      btn.disabled = true;
+      remove(pRef)
+        .then(() => toast('Pedido borrado'))
+        .catch(err => { console.error(err); btn.disabled = false; toast('No se pudo borrar. Intenta de nuevo.'); });
+    }
+
+    if (btn.dataset.acc === 'ticket') imprimirTicket(id, p);
   });
+
+  /* ---------- Ticket / comanda de cocina ---------- */
+  const ANCHO_KEY = 'ticketAncho';
+  let ancho = '80';
+  try { ancho = localStorage.getItem(ANCHO_KEY) === '58' ? '58' : '80'; } catch (e) {}
+  $('ticket-ancho').value = ancho;
+  $('ticket-ancho').addEventListener('change', e => {
+    ancho = e.target.value;
+    try { localStorage.setItem(ANCHO_KEY, ancho); } catch (err) {}
+  });
+
+  function imprimirTicket(id, p) {
+    const nombreLocal = (saved && saved.info && saved.info.nombre) || DEFAULTS.info.nombre;
+    const f = new Date(p.fecha);
+    const fecha = f.toLocaleDateString('es-CL', { day:'2-digit', month:'2-digit', year:'numeric' });
+    const platos = String(p.detalle || '').split(' | ').filter(Boolean)
+      .map(l => '<div class="t-item">' + esc(l) + '</div>').join('');
+
+    const t = $('ticket');
+    t.className = 'w' + ancho;
+    t.innerHTML = `
+      <div class="t-c t-big">${esc(nombreLocal)}</div>
+      <div class="t-c">COMANDA DE COCINA</div>
+      <div class="t-sep"></div>
+      <div class="t-row"><span>Fecha</span><span>${fecha}</span></div>
+      <div class="t-row"><span>Hora</span><span>${horaDe(p.fecha)}</span></div>
+      <div class="t-row"><span>Pedido</span><span>#${esc(String(id).slice(-5).toUpperCase())}</span></div>
+      <div class="t-sep"></div>
+      <div class="t-lbl">Cliente</div><div class="t-big">${esc(p.cliente || 'Sin nombre')}</div>
+      <div class="t-lbl">Empresa</div><div>${esc(p.empresa || 'Particular')}</div>
+      <div class="t-sep"></div>
+      <div class="t-big">CANT: ${Number(p.cantidad) || 1}</div>
+      ${platos}
+      ${p.nota ? '<div class="t-sep"></div><div class="t-lbl">Observaciones</div><div class="t-obs">' + esc(p.nota) + '</div>' : ''}
+      <div class="t-sep"></div>
+      <div class="t-row t-big"><span>TOTAL</span><span>${clp(Number(p.total) || 0)}</span></div>
+      <div class="t-sep"></div>
+      <div class="t-c t-small">Impreso ${horaDe(Date.now())}</div>`;
+
+    // Tamaño de papel para la impresora térmica
+    $('ticket-page').textContent = `@media print{ @page{ size:${ancho}mm auto; margin:0 } }`;
+    document.body.classList.add('print-ticket');
+    window.print();
+  }
+  window.addEventListener('afterprint', () => document.body.classList.remove('print-ticket'));
 
   // Guardar
   $('btn-save').onclick = () => {
@@ -323,10 +543,83 @@
       tema: (sw.querySelector('input:checked') || {}).value || 'tomate',
       actualizado: new Date().toISOString()
     };
-    set(menuRef, data).then(() => { setDirty(false); alert('¡Menú publicado!'); });
+    set(menuRef, data)
+      .then(() => { setDirty(false); toast('¡Menú publicado! 🎉'); })
+      .catch(err => {
+        console.error('Firebase:', err);
+        toast(esPermiso(err)
+          ? 'Tu cuenta no tiene permiso para publicar. Revisa la lista admins en Firebase.'
+          : 'No se pudo publicar. Revisa tu conexión e intenta de nuevo.');
+      });
   };
 
   $('btn-preview').onclick = () => window.open('index.html', '_blank');
+  /* ---------- Ingreso con correo y clave ---------- */
+  const auth = getAuth(app);
+  const loginEl = document.getElementById('login');
+  const loginErr = document.getElementById('login-err');
+  const loginBtn = document.getElementById('login-btn');
+
+  function mensajeAuth(err) {
+    const code = (err && err.code) || '';
+    if (/invalid-credential|wrong-password|user-not-found|invalid-login/.test(code)) return 'Correo o clave incorrectos.';
+    if (/invalid-email/.test(code)) return 'Revisa el correo, parece mal escrito.';
+    if (/missing-password/.test(code)) return 'Escribe tu clave.';
+    if (/too-many-requests/.test(code)) return 'Demasiados intentos. Espera unos minutos e intenta de nuevo.';
+    if (/network-request-failed/.test(code)) return 'Sin conexión a internet. Revisa tu red.';
+    if (/user-disabled/.test(code)) return 'Esta cuenta está desactivada.';
+    return 'No se pudo ingresar. Intenta de nuevo.';
+  }
+  function avisoLogin(text, ok) {
+    loginErr.textContent = text;
+    loginErr.classList.toggle('ok', !!ok);
+  }
+
+  document.getElementById('login-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    if (!email || !pass) { avisoLogin('Escribe tu correo y tu clave.'); return; }
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Entrando…';
+    avisoLogin('');
+    signInWithEmailAndPassword(auth, email, pass)
+      .catch(err => { console.error('Auth:', err); avisoLogin(mensajeAuth(err)); })
+      .finally(() => { loginBtn.disabled = false; loginBtn.textContent = 'Entrar'; });
+  });
+
+  document.getElementById('login-reset').addEventListener('click', () => {
+    const email = document.getElementById('login-email').value.trim();
+    if (!email) { avisoLogin('Escribe tu correo arriba y vuelve a tocar “¿Olvidaste tu clave?”.'); return; }
+    sendPasswordResetEmail(auth, email)
+      .then(() => avisoLogin('Si el correo está registrado, te llegará un enlace para crear una clave nueva.', true))
+      .catch(err => { console.error('Auth:', err); avisoLogin(mensajeAuth(err)); });
+  });
+
+  // Mensaje cuando la cuenta entra pero no está en la lista "admins" de Firebase
+  function sinPermisoHTML(user) {
+    return 'Esta cuenta (' + esc(user && user.email) + ') no tiene permiso para ver los pedidos. ' +
+           'Agrega su UID en la rama <b>admins</b> de Firebase:<br><code>' + esc(user && user.uid) + '</code>';
+  }
+  const esPermiso = err => /permission/i.test((err && (err.code || err.message)) || '');
+
+  onAuthStateChanged(auth, user => {
+    loginEl.classList.remove('checking');
+    if (user) {
+      document.body.classList.add('authed');
+      document.getElementById('login-pass').value = '';
+      avisoLogin('');
+      escucharPedidos(user);
+    } else {
+      document.body.classList.remove('authed');
+      dejarPedidos();
+    }
+  });
+
+  $('btn-logout').addEventListener('click', () => {
+    if (dirty && !confirm('Tienes cambios sin publicar. ¿Salir de todas formas?')) return;
+    signOut(auth);
+  });
 </script>
 </body>
 </html>

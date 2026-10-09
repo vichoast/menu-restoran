@@ -171,7 +171,7 @@
       <h3 id="order-title">Tu pedido</h3>
       <div class="row">
         <label class="field"><span class="lbl">Tu nombre</span>
-          <input id="o-nombre" autocomplete="given-name" placeholder="Ej: Camila">
+          <input id="o-nombre" autocomplete="given-name" maxlength="80" placeholder="Ej: Camila">
         </label>
         <div class="field"><span class="lbl">Cantidad</span>
           <div class="qty">
@@ -182,7 +182,7 @@
         </div>
       </div>
       <label class="field" style="display:block;margin-top:12px"><span class="lbl">Comentario (opcional)</span>
-        <input id="o-nota" placeholder="Ej: sin cebolla, retiro a las 13:30">
+        <input id="o-nota" maxlength="300" placeholder="Ej: sin cebolla, retiro a las 13:30">
       </label>
 
       <div class="summary" id="resumen" aria-live="polite"></div>
@@ -218,7 +218,7 @@
 
   // Detectar la empresa desde la URL (ej: ?empresa=Europer)
   const urlParams = new URLSearchParams(window.location.search);
-  const empresaDetectada = urlParams.get('empresa') || 'Particular';
+  const empresaDetectada = (urlParams.get('empresa') || '').trim().slice(0, 60) || 'Particular';
 
   const THEME_COLORS = { tomate:'#B83A2A', oliva:'#56742A', mostaza:'#9A6608', berenjena:'#6A3858', canela:'#7D4A26' };
 
@@ -396,9 +396,10 @@
       detalle: detallePlatos,
       nota: nota,
       total: data.precio * n,
+      estado: 'pendiente',       // la caja lo confirma en admin.html cuando llega el WhatsApp
       fecha: new Date().toISOString()
     };
-    push(pedidosRef, nuevoPedido);
+    push(pedidosRef, nuevoPedido).catch(err => console.error('No se pudo registrar el pedido:', err));
 
     // 2. Construir mensaje de WhatsApp
     let msg = '¡Hola ' + data.info.nombre + '! 👋\n';

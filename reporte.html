@@ -12,7 +12,8 @@
   *{box-sizing:border-box}
   body{margin:0; background:#F5F0E8; color:#2E2219; font:400 16px/1.5 "Nunito", system-ui, sans-serif}
   
-  header{background:#B83A2A; color:#fff; padding:20px 16px}
+  header{background:#B83A2A; color:#fff; padding:20px 16px; display:flex; align-items:center; gap:12px}
+  header .wrap{flex:1}
   .wrap{max-width:960px; margin:0 auto}
   header h1{margin:0; font-size:1.5rem}
   header p{margin:4px 0 0; opacity:.9; font-size:.95rem}
@@ -46,18 +47,58 @@
   .tag-empresa{background:#F2E3D4; color:#7D4A26; padding:2px 8px; border-radius:6px; font-weight:700; font-size:.8rem}
 
   @media print {
-    header, .tabs, .btn-print{display:none}
+    header, .tabs, .btn-print, .login{display:none !important}
     body, main, .card{background:#fff; padding:0; box-shadow:none}
   }
+
+  /* ---------- Ingreso con correo y clave ---------- */
+  body:not(.authed) > *:not(.login):not(script):not(style){display:none !important}
+  body.authed .login{display:none}
+  .login{position:fixed; inset:0; z-index:100; background:#F5F0E8; display:grid; place-items:center; padding:16px; overflow:auto}
+  .login-wait{display:none; color:#76665A; font-weight:700}
+  .login.checking .login-wait{display:block}
+  .login.checking .login-card{display:none}
+  .login-card{width:100%; max-width:380px; background:#fff; border-radius:18px; padding:26px 22px; box-shadow:0 10px 40px -12px rgba(46,34,25,.35); display:grid; gap:12px}
+  .login-logo{width:52px; height:52px; border-radius:14px; background:#B83A2A; color:#fff; display:grid; place-items:center; font-size:1.5rem}
+  .login-card h1{margin:0; font-size:1.4rem; color:#2E2219}
+  .login-sub{margin:-6px 0 4px; color:#76665A; font-size:.92rem}
+  .login-field{display:grid; gap:5px; font-weight:700; font-size:.92rem; color:#2E2219}
+  .login-field input{font:inherit; font-weight:400; font-size:16px; padding:12px 13px; border:1.5px solid #E4D8C6; border-radius:11px; background:#fff; color:#2E2219}
+  .login-field input:focus{outline:none; border-color:#B83A2A; box-shadow:0 0 0 3px rgba(184,58,42,.15)}
+  .login-err{margin:0; min-height:1.2em; color:#B83A2A; font-weight:700; font-size:.9rem}
+  .login-err.ok{color:#1F7A45}
+  .login-btn{font:inherit; font-weight:800; font-size:1.05rem; border:0; border-radius:12px; padding:14px; background:#B83A2A; color:#fff; cursor:pointer}
+  .login-btn:disabled{opacity:.6; cursor:wait}
+  .login-link{font:inherit; font-size:.88rem; font-weight:700; border:0; background:none; color:#76665A; text-decoration:underline; cursor:pointer; justify-self:center; padding:4px}
+  .logout{font:inherit; font-weight:800; font-size:.88rem; border:1.5px solid rgba(255,255,255,.55); background:rgba(255,255,255,.12); color:#fff; border-radius:10px; padding:8px 14px; cursor:pointer; margin-left:auto; flex:none}
+  .logout:hover{background:rgba(255,255,255,.25)}
 </style>
 </head>
 <body>
 
+<!-- Pantalla de ingreso -->
+<div class="login checking" id="login">
+  <p class="login-wait">Comprobando sesión…</p>
+  <form class="login-card" id="login-form" novalidate>
+    <div class="login-logo" aria-hidden="true">🔒</div>
+    <h1>Reporte de pedidos</h1>
+    <p class="login-sub">Acceso para Recursos Humanos y encargados de convenio.</p>
+    <label class="login-field"><span>Correo</span>
+      <input id="login-email" type="email" autocomplete="username" inputmode="email" required></label>
+    <label class="login-field"><span>Clave</span>
+      <input id="login-pass" type="password" autocomplete="current-password" required></label>
+    <p class="login-err" id="login-err" role="alert"></p>
+    <button class="login-btn" id="login-btn" type="submit">Entrar</button>
+    <button class="login-link" id="login-reset" type="button">¿Olvidaste tu clave?</button>
+  </form>
+</div>
+
 <header>
   <div class="wrap">
     <h1>📋 Control de Pedidos por Empresa</h1>
-    <p>Panel filtrado para Recursos Humanos y Encargados de Convenio</p>
+    <p>Panel filtrado para Recursos Humanos y Encargados de Convenio · Solo pedidos confirmados por caja</p>
   </div>
+  <button class="logout" id="btn-logout" type="button">Salir</button>
 </header>
 
 <main>
@@ -93,6 +134,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyB4fIq_u9YM_wrgepR5BIjvNvzd9VQ2lI",
@@ -110,6 +152,7 @@
   const pedidosRef = ref(db, 'pedidos');
 
   const clp = n => new Intl.NumberFormat('es-CL', { style:'currency', currency:'CLP', maximumFractionDigits:0 }).format(n || 0);
+  const $ = id => document.getElementById(id);
   const esc = v => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
   
   const hoyFecha = new Date();
@@ -157,7 +200,7 @@
       : todosLosPedidosHoy.filter(p => (p.empresa || 'Particular') === filtroActual);
 
     if (!listaFiltrada.length) {
-      cont.innerHTML = '<p class="vacio">No hay pedidos registrados para esta categoría hoy.</p>';
+      cont.innerHTML = '<p class="vacio">No hay pedidos confirmados para esta categoría hoy.</p>';
       kpiCant.textContent = '0';
       kpiMonto.textContent = '$0';
       return;
@@ -188,19 +231,102 @@
     cont.innerHTML = html;
   }
 
-  onValue(pedidosRef, snap => {
-    const data = snap.val();
-    if (!data) {
-      todosLosPedidosHoy = [];
-    } else {
-      const hoyStr = hoyFecha.toDateString();
-      todosLosPedidosHoy = Object.values(data)
-        .filter(p => new Date(p.fecha).toDateString() === hoyStr)
-        .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-    }
-    renderTabs();
-    renderTabla();
+  let dejarDeEscuchar = null;
+
+  function escucharPedidos(user) {
+    if (dejarDeEscuchar) dejarDeEscuchar();
+    dejarDeEscuchar = onValue(pedidosRef, snap => {
+      const data = snap.val();
+      if (!data) {
+        todosLosPedidosHoy = [];
+      } else {
+        const hoyStr = hoyFecha.toDateString();
+        todosLosPedidosHoy = Object.values(data)
+          .filter(p => p && p.estado === 'confirmado')                    // solo pedidos validados por caja
+          .filter(p => new Date(p.fecha).toDateString() === hoyStr)
+          .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+      }
+      renderTabs();
+      renderTabla();
+    }, err => {
+      console.error('Firebase:', err);
+      $('titulo-filtro').textContent = 'No se pudieron cargar los pedidos';
+      $('contenedor-tabla').innerHTML = '<p class="vacio">' + (esPermiso(err)
+        ? sinPermisoHTML(user)
+        : 'Revisa tu conexión y recarga la página.') + '</p>';
+    });
+  }
+
+  function dejarPedidos() {
+    if (dejarDeEscuchar) dejarDeEscuchar();
+    dejarDeEscuchar = null;
+    todosLosPedidosHoy = [];
+    $('contenedor-tabs').innerHTML = '';
+    $('contenedor-tabla').innerHTML = '';
+  }
+  /* ---------- Ingreso con correo y clave ---------- */
+  const auth = getAuth(app);
+  const loginEl = document.getElementById('login');
+  const loginErr = document.getElementById('login-err');
+  const loginBtn = document.getElementById('login-btn');
+
+  function mensajeAuth(err) {
+    const code = (err && err.code) || '';
+    if (/invalid-credential|wrong-password|user-not-found|invalid-login/.test(code)) return 'Correo o clave incorrectos.';
+    if (/invalid-email/.test(code)) return 'Revisa el correo, parece mal escrito.';
+    if (/missing-password/.test(code)) return 'Escribe tu clave.';
+    if (/too-many-requests/.test(code)) return 'Demasiados intentos. Espera unos minutos e intenta de nuevo.';
+    if (/network-request-failed/.test(code)) return 'Sin conexión a internet. Revisa tu red.';
+    if (/user-disabled/.test(code)) return 'Esta cuenta está desactivada.';
+    return 'No se pudo ingresar. Intenta de nuevo.';
+  }
+  function avisoLogin(text, ok) {
+    loginErr.textContent = text;
+    loginErr.classList.toggle('ok', !!ok);
+  }
+
+  document.getElementById('login-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    if (!email || !pass) { avisoLogin('Escribe tu correo y tu clave.'); return; }
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Entrando…';
+    avisoLogin('');
+    signInWithEmailAndPassword(auth, email, pass)
+      .catch(err => { console.error('Auth:', err); avisoLogin(mensajeAuth(err)); })
+      .finally(() => { loginBtn.disabled = false; loginBtn.textContent = 'Entrar'; });
   });
+
+  document.getElementById('login-reset').addEventListener('click', () => {
+    const email = document.getElementById('login-email').value.trim();
+    if (!email) { avisoLogin('Escribe tu correo arriba y vuelve a tocar “¿Olvidaste tu clave?”.'); return; }
+    sendPasswordResetEmail(auth, email)
+      .then(() => avisoLogin('Si el correo está registrado, te llegará un enlace para crear una clave nueva.', true))
+      .catch(err => { console.error('Auth:', err); avisoLogin(mensajeAuth(err)); });
+  });
+
+  // Mensaje cuando la cuenta entra pero no está en la lista "admins" de Firebase
+  function sinPermisoHTML(user) {
+    return 'Esta cuenta (' + esc(user && user.email) + ') no tiene permiso para ver los pedidos. ' +
+           'Agrega su UID en la rama <b>rrhh</b> (solo lectura) o <b>admins</b> de Firebase:<br><code>' + esc(user && user.uid) + '</code>';
+  }
+  const esPermiso = err => /permission/i.test((err && (err.code || err.message)) || '');
+
+  onAuthStateChanged(auth, user => {
+    loginEl.classList.remove('checking');
+    if (user) {
+      document.body.classList.add('authed');
+      document.getElementById('login-pass').value = '';
+      avisoLogin('');
+      escucharPedidos(user);
+    } else {
+      document.body.classList.remove('authed');
+      dejarPedidos();
+    }
+  });
+
+  $('btn-logout').addEventListener('click', () => signOut(auth));
 </script>
 </body>
 </html>
