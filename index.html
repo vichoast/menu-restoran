@@ -73,8 +73,12 @@
     font-family:"Fraunces", Georgia, serif; font-weight:800; color:var(--accent);
     font-size:clamp(2.6rem, 13vw, 3.6rem); line-height:1; margin:14px 0 6px;
   }
-  /* Ocultar precio en modo convenio */
-  body.es-convenio .price, body.es-convenio .total span:last-child { display: none !important; }
+
+  /* REGLA DE SEGURIDAD: Ocultar precios cuando hay convenio */
+  body.es-convenio .price,
+  body.es-convenio .total span:last-child {
+    display: none !important;
+  }
 
   .includes{color:var(--muted); font-weight:600; margin:0}
 
@@ -113,10 +117,7 @@
 
   .convenio{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin:18px 0 0;
     background:var(--paper); border:1.5px solid var(--line); border-radius:14px; padding:10px 14px; font-weight:700}
-  .convenio select{font:inherit; font-weight:800; font-size:16px; padding:8px 12px; border:1.5px solid var(--accent);
-    border-radius:10px; background:#fff; color:var(--ink); cursor:pointer}
 
-  /* ESTILO COMPACTO PARA ACOMPAÑAMIENTOS RÁPIDOS (Sopa, Pan, Pebre) */
   .acomp-block{margin-top:10px; padding-top:10px; border-top:1px dashed var(--line)}
   .acomp-block:first-child{margin-top:0; padding-top:0; border-top:0}
   .acomp-title{font-weight:700; font-size:0.95rem; margin-bottom:4px; display:flex; align-items:center; gap:6px}
@@ -197,9 +198,7 @@
       </div>
     </article>
 
-    <label class="convenio">🏢 Pides como:
-      <select id="o-empresa" aria-label="Empresa o convenio"></select>
-    </label>
+    <div class="convenio" id="contenedor-convenio" style="display:none;"></div>
 
     <p class="hint">Elige tu plato principal y tus acompañamientos 👇</p>
     <div class="grid" id="secciones"><p class="loading">Cargando el menú de hoy…</p></div>
@@ -255,23 +254,21 @@
 
   const EMPRESAS = { foodpro: 'FoodPro', europer: 'Europer' };
   const urlParams = new URLSearchParams(window.location.search);
-  const empRaw = (urlParams.get('empresa') || '').trim().slice(0, 60);
-  const tieneParametro = !!empRaw;
+  const empRaw = (urlParams.get('empresa') || '').trim();
   const empresaUrl = EMPRESAS[empRaw.toLowerCase()] || 'Particular';
+  const tieneConvenio = empresaUrl !== 'Particular';
 
-  const selEmp = document.getElementById('o-empresa');
-  const contenedorConvenio = selEmp ? selEmp.closest('.convenio') : null;
+  const contenedorConvenio = document.getElementById('contenedor-convenio');
 
-  if (contenedorConvenio) {
-    if (tieneParametro && empresaUrl !== 'Particular') {
+  if (tieneConvenio) {
+    document.body.classList.add('es-convenio');
+    if (contenedorConvenio) {
+      contenedorConvenio.style.display = 'flex';
       contenedorConvenio.innerHTML = `🏢 Convenio activo: <b>${empresaUrl}</b>`;
-      document.body.classList.add('es-convenio');
-    } else {
-      contenedorConvenio.style.display = 'none';
     }
   }
 
-  const empresaActual = () => (tieneParametro ? empresaUrl : 'Particular');
+  const empresaActual = () => empresaUrl;
 
   const PERFILES = {
     FoodPro: { ocultar: ['pan', 'pebre'] },
@@ -371,8 +368,8 @@
     $('r-nombre').textContent = data.info.nombre;
     $('r-direccion').textContent = data.info.direccion;
     $('r-horario').textContent = data.info.horario;
-    $('fecha').textContent = fechaLarga(Date.now());
-    $('precio').textContent = clp(data.precio);$('incluye').textContent = data.incluye;
+    $('fecha').textContent = fechaLarga(Date.now());$('precio').textContent = tieneConvenio ? '' : clp(data.precio);
+    $('incluye').textContent = data.incluye;
     document.title = 'Menú del Día · ' + data.info.nombre;
 
     const cont = $('secciones');
@@ -384,17 +381,15 @@
       const inp = document.createElement('input');
       inp.type = isMulti ? 'checkbox' : 'radio';
       inp.name = c.key;
-      inp.value = valRaw; // Mantiene el valor raw para cálculo
+      inp.value = valRaw;
       if (c.yesno) inp.dataset.yn = '1';
       if (checked) { inp.checked = true; inp.dataset.was = '1'; }
       const span = document.createElement('span');
-      // Oculta el ($precio) de la vista del cliente
       span.textContent = limpiarTextoOpcion(nameRaw);
       lab.append(inp, span);
       return lab;
     };
 
-    // Renderizar categorías principales
     CATS_STANDALONE.filter(c => esVisible(c.key)).forEach(c => {
       const sec = document.createElement('section');
       sec.className = 'cat';
@@ -438,7 +433,6 @@
       cont.appendChild(sec);
     });
 
-    // RENDERIZAR TARJETA ÚNICA DE ACOMPAÑAMIENTOS RÁPIDOS
     const acompVisibles = CATS_ACOMP.filter(c => esVisible(c.key));
     if (acompVisibles.length) {
       const secAcomp = document.createElement('section');
@@ -561,8 +555,7 @@
     t.innerHTML = '<span></span><span></span>';
     t.firstChild.textContent = 'Total (' + qty() + (qty() === 1 ? ' almuerzo)' : ' almuerzos)');
 
-    // Si no es convenio, muestra el total en la parte inferior
-    if (empresaActual() === 'Particular') {
+    if (!tieneConvenio) {
       t.lastChild.textContent = clp(unitario * qty());
     } else {
       t.lastChild.textContent = '';
@@ -660,11 +653,11 @@
     msg += 'Quiero pedir ' + (n === 1 ? 'un almuerzo' : n + ' almuerzos') + ' del Menú del Día (' + fechaLarga(Date.now()) + '):\n\n';
     sel.filter(s => s.value).forEach(s => { msg += '• ' + s.label + ': ' + limpiarTextoOpcion(s.value) + '\n'; });
 
-    if (empresaActual() === 'Particular') {
+    if (!tieneConvenio) {
       msg += '\nTotal: ' + clp(unitario * n);
     }
     msg += '\nNombre: ' + nombre;
-    if (empresaActual() !== 'Particular') msg += '\nEmpresa: ' + empresaActual();
+    if (tieneConvenio) msg += '\nEmpresa: ' + empresaActual();
     if (nota) msg += '\nComentario: ' + nota;
     msg += '\n\n¡Gracias!';
 
