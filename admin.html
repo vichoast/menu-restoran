@@ -23,18 +23,15 @@
   .btn-sm { padding: 6px 12px; border-radius: 8px; border: 0; cursor: pointer; font-weight: 700; font-size: 0.85rem; }
   .btn-danger { background: var(--danger); color: white; }
 
-  /* Login Card */
   .auth-card { background: var(--card); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); max-width: 400px; margin: 40px auto; text-align: center; }
   .auth-card input { width: 100%; padding: 12px; margin: 8px 0 16px; border: 1.5px solid var(--line); border-radius: 10px; font-size: 1rem; }
 
-  /* Layout Grid */
   .grid-panel { display: grid; gap: 20px; grid-template-columns: 1fr; }
   @media(min-width: 768px) { .grid-panel { grid-template-columns: 1fr 1fr; } }
 
   .card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
   .card h2 { font-size: 1.2rem; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1.5px solid var(--line); padding-bottom: 8px; }
 
-  /* Form controls */
   .field { margin-bottom: 12px; }
   .field label { display: block; font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; }
   .field input, .field textarea, .field select { width: 100%; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; font-size: 0.95rem; }
@@ -43,12 +40,18 @@
   .btn-main { width: 100%; padding: 14px; background: var(--primary); color: white; border: 0; border-radius: 12px; font-weight: 800; font-size: 1.05rem; cursor: pointer; margin-top: 10px; }
   .btn-main:hover { background: var(--primary-hover); }
 
-  /* Resumen Cocina */
+  /* Ensaladas Manager UI */
+  .ensaladas-box { background: #f8fafc; border: 1.5px solid var(--line); padding: 12px; border-radius: 10px; margin-top: 4px; }
+  .ensaladas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-top: 8px; }
+  .ensalada-toggle { display: flex; align-items: center; gap: 8px; background: #ffffff; border: 1.5px solid var(--line); padding: 8px 10px; border-radius: 8px; font-size: 0.88rem; font-weight: 700; cursor: pointer; user-select: none; }
+  .ensalada-toggle input { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
+  .ensalada-toggle.off { opacity: 0.5; background: #e2e8f0; text-decoration: line-through; }
+  .btn-reset-ensaladas { background: #e2e8f0; color: #334155; border: 0; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; margin-bottom: 8px; }
+
   .cocina-box { background: #fef3c7; border: 1.5px solid #f59e0b; border-radius: 12px; padding: 14px; margin-bottom: 16px; }
   .cocina-box h3 { font-size: 1rem; color: #92400e; margin-bottom: 6px; }
   .cocina-items { font-weight: 700; font-size: 0.95rem; display: flex; flex-wrap: wrap; gap: 12px; }
 
-  /* Pedidos List */
   .pedido-item { border: 1.5px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 12px; background: white; position: relative; }
   .pedido-item.anulado { opacity: 0.5; background: #f1f5f9; }
   .pedido-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
@@ -70,7 +73,6 @@
   .ancho { font-size: 0.85rem; font-weight: 700; color: var(--muted); display: flex; align-items: center; gap: 6px; margin: -6px 0 12px; }
   .ancho select { padding: 4px 8px; border: 1.5px solid var(--line); border-radius: 8px; font: inherit; }
 
-  /* Ticket térmico para cocina: solo se ve al imprimir */
   #ticket { display: none; }
   @media print {
     body.print-ticket { background: #fff; margin: 0; padding: 0; max-width: none; }
@@ -130,9 +132,26 @@
           <textarea id="m-agregados" placeholder="Arroz&#10;Puré&#10;Papas Fritas"></textarea>
         </div>
         <div class="field">
-          <label>Sopas / Entradas (uno por línea)</label>
+          <label>Sopas (uno por línea)</label>
           <textarea id="m-entradas" placeholder="Sopa de Verduras&#10;Consomé"></textarea>
         </div>
+
+        <!-- EDITAR Y ACTIVAR/DESACTIVAR ENSALADAS -->
+        <div class="field">
+          <label>🥗 Lista Maestra de Ensaladas (puedes agregar o quitar opciones escribiendo abajo, una por línea):</label>
+          <textarea id="m-ensaladas-master" placeholder="Surtida&#10;Lechuga&#10;Betarraga&#10;Zanahoria&#10;Papas mayo&#10;Brócoli&#10;Pepino&#10;Tomate&#10;Chilena"></textarea>
+
+          <div class="ensaladas-box">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label style="margin:0; font-size:0.85rem;">⚡ Marcar disponibilidad para HOY:</label>
+              <button type="button" class="btn-reset-ensaladas" id="btn-reset-ensaladas">🔄 Marcar todas disponibles</button>
+            </div>
+            <div class="ensaladas-grid" id="ensaladas-container">
+              <!-- Se generan dinámicamente según lo escrito arriba -->
+            </div>
+          </div>
+        </div>
+
         <div class="field">
           <label>Postres (uno por línea)</label>
           <textarea id="m-postres" placeholder="Flan&#10;Jalea"></textarea>
@@ -184,7 +203,6 @@
   </div>
 </div>
 
-<!-- Comanda que se imprime en la impresora térmica -->
 <div id="ticket" aria-hidden="true"></div>
 <style id="ticket-page"></style>
 
@@ -209,10 +227,11 @@
 
   const $ = id => document.getElementById(id);
   const clp = n => new Intl.NumberFormat('es-CL', { style:'currency', currency:'CLP', maximumFractionDigits:0 }).format(n || 0);
-  // Limpia el texto que escriben los clientes antes de mostrarlo (evita que alguien inyecte código en el panel)
   const esc = v => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
 
-  // Sesión y Auth
+  const DEFAULT_ENSALADAS = ['Surtida', 'Lechuga', 'Betarraga', 'Zanahoria', 'Papas mayo', 'Brócoli', 'Pepino', 'Tomate', 'Chilena'];
+  let ensaladasEstado = {};   // nombre -> true/false (solo en memoria; en Firebase se guarda la lista "ensaladas" disponibles)
+
   onAuthStateChanged(auth, user => {
     if (user) {
       $('login-view').classList.add('hidden');
@@ -233,7 +252,36 @@
 
   $('btn-logout').onclick = () => signOut(auth);
 
-  // Cargar y Guardar Menú
+  function getListaMasterEnsaladas() {
+    const txt = $('m-ensaladas-master').value.split('\n').map(s => s.trim()).filter(Boolean);
+    return txt.length ? txt : DEFAULT_ENSALADAS;
+  }
+
+  function renderEnsaladasAdmin() {
+    const cont = $('ensaladas-container');
+    cont.innerHTML = '';
+    const lista = getListaMasterEnsaladas();
+    lista.forEach(item => {
+      const isAct = ensaladasEstado[item] !== false;
+      const lab = document.createElement('label');
+      lab.className = `ensalada-toggle ${isAct ? '' : 'off'}`;
+      lab.innerHTML = `<input type="checkbox" ${isAct ? 'checked' : ''} data-ens="${esc(item)}"> <span>${esc(item)}</span>`;
+      lab.querySelector('input').onchange = (e) => {
+        ensaladasEstado[item] = e.target.checked;
+        lab.classList.toggle('off', !e.target.checked);
+      };
+      cont.appendChild(lab);
+    });
+  }
+
+  // Al escribir o borrar ensaladas en la caja de texto, se actualizan los switches automáticamente
+  $('m-ensaladas-master').addEventListener('input', renderEnsaladasAdmin);
+
+  $('btn-reset-ensaladas').onclick = () => {
+    getListaMasterEnsaladas().forEach(item => { ensaladasEstado[item] = true; });
+    renderEnsaladasAdmin();
+  };
+
   function cargarDatos() {
     onValue(ref(db, 'menu'), snap => {
       const data = snap.val() || {};
@@ -245,6 +293,15 @@
       $('m-especial-act').checked = data.especialActivo !== false;
       $('m-especiales').value = (data.especiales || []).join('\n');
 
+      const master = data.ensaladasMaster || DEFAULT_ENSALADAS;
+      $('m-ensaladas-master').value = master.join('\n');
+
+      // Disponibilidad: se deduce de la lista "ensaladas" publicada (la que ve el cliente)
+      const disponibles = Array.isArray(data.ensaladas) ? data.ensaladas : null;
+      ensaladasEstado = {};
+      master.forEach(item => { ensaladasEstado[item] = disponibles ? disponibles.includes(item) : true; });
+      renderEnsaladasAdmin();
+
       if (data.info) {
         $('i-nombre').value = data.info.nombre || '';
         $('i-whatsapp').value = data.info.whatsapp || '';
@@ -252,20 +309,25 @@
       }
     });
 
-    // Escuchar Pedidos
     onValue(ref(db, 'pedidos'), snap => {
-      const pedidos = snap.val() || {};
-      renderPedidos(pedidos);
+      renderPedidos(snap.val() || {});
     });
   }
 
   $('btn-guardar').onclick = () => {
     const splitLines = id => $(id).value.split('\n').map(s => s.trim()).filter(Boolean);
+    const masterList = getListaMasterEnsaladas();
+    const ensaladasDisponibles = masterList.filter(item => ensaladasEstado[item] !== false);
+
     const menuData = {
       precio: Number($('m-precio').value) || 6500,
       principales: splitLines('m-principales'),
       agregados: splitLines('m-agregados'),
       entradas: splitLines('m-entradas'),
+      ensaladasMaster: masterList,
+      ensaladas: ensaladasDisponibles,
+      // Ya no se guarda como objeto: un nombre con "/" o "." (ej. "Papas c/mayo") haría fallar el guardado
+      ensaladasEstado: null,
       postres: splitLines('m-postres'),
       especialActivo: $('m-especial-act').checked,
       especiales: splitLines('m-especiales')
@@ -282,11 +344,9 @@
     update(ref(db, 'menu/info'), infoData).then(() => alert('¡Información del local actualizada!')).catch(e => alert('Error: ' + e.message));
   };
 
-  // Renderizar Lista y Resumen para Cocina
   function renderPedidos(pedidosObj) {
     const cont = $('pedidos-lista');
     cont.innerHTML = '';
-    // Solo los pedidos de hoy (la base también guarda los días anteriores)
     const hoy = new Date().toDateString();
     const items = Object.keys(pedidosObj)
       .map(k => ({ id: k, ...pedidosObj[k] }))
@@ -300,6 +360,7 @@
     }
 
     let sopasCount = 0;
+    let ensaladasCount = 0;
     let almuerzosCount = 0;
 
     pedidosHoy = {};
@@ -307,8 +368,13 @@
       pedidosHoy[p.id] = p;
       if (p.estado !== 'anulado') {
         almuerzosCount += (Number(p.cantidad) || 1);
-        if (p.detalle && p.detalle.toLowerCase().includes('sopa/entrada: sí')) {
+        // "Sopa: Sí" (formato actual) o "Sopa/Entrada: Sí" (pedidos antiguos)
+        if (p.detalle && /sopa(\/entrada)?: sí/i.test(p.detalle)) {
           sopasCount += (Number(p.cantidad) || 1);
+        }
+        // Cualquier ensalada elegida ("Ensaladas: Lechuga + Tomate"), excepto "No" / "Sin ensalada"
+        if (p.detalle && /ensaladas?: (?!no\b|sin ensalada)/i.test(p.detalle)) {
+          ensaladasCount += (Number(p.cantidad) || 1);
         }
       }
 
@@ -343,12 +409,12 @@
     });
 
     $('summary-cocina').innerHTML = `
-      <span>🍱 Total Almuerzos: <b>${almuerzosCount}</b></span> |
-      <span>🥣 Total Sopas: <b>${sopasCount}</b></span>
+      <span>🍱 Almuerzos: <b>${almuerzosCount}</b></span> |
+      <span>🥣 Sopas: <b>${sopasCount}</b></span> |
+      <span>🥗 Ensaladas: <b>${ensaladasCount}</b></span>
     `;
   }
 
-  /* ---------- Ticket corto para cocina: nombre, empresa, platos y observaciones ---------- */
   let pedidosHoy = {};
   let ancho = '80';
   try { ancho = localStorage.getItem('ticketAncho') === '58' ? '58' : '80'; } catch (e) {}

@@ -78,6 +78,7 @@
   .hint{text-align:center; color:var(--muted); margin:22px 0 4px; font-weight:600}
   .grid{display:grid; gap:14px; margin-top:12px}
   @media (min-width:640px){ .grid{grid-template-columns:1fr 1fr} }
+
   section.cat{
     background:var(--paper); border-radius:var(--radius); box-shadow:var(--shadow);
     padding:18px 16px 14px; border-top:6px solid var(--accent); scroll-margin-top:16px;
@@ -86,28 +87,40 @@
   section.cat.need{box-shadow:0 0 0 3px var(--accent), var(--shadow)}
   .cat h3{font-size:1.3rem; display:flex; align-items:center; gap:8px; margin-bottom:10px}
   .cat h3 .emo{font-size:1.4rem}
+
+  /* Opciones Radio / Checkbox */
   .opt{
     display:flex; align-items:center; gap:12px; padding:12px; margin:6px 0;
     border:1.5px solid var(--line); border-radius:12px; cursor:pointer;
     font-weight:600; min-height:52px; transition:background .15s, border-color .15s;
   }
-  .opt input{appearance:none; -webkit-appearance:none; width:24px; height:24px; flex:none; margin:0;
+  .opt input[type=radio]{appearance:none; -webkit-appearance:none; width:24px; height:24px; flex:none; margin:0;
     border:2px solid var(--line); border-radius:50%; background:#fff; display:grid; place-content:center; cursor:pointer}
-  .opt input::after{content:""; width:12px; height:12px; border-radius:50%; background:var(--accent); transform:scale(0); transition:transform .15s}
-  .opt input:checked{border-color:var(--accent)}
-  .opt input:checked::after{transform:scale(1)}
+  .opt input[type=radio]::after{content:""; width:12px; height:12px; border-radius:50%; background:var(--accent); transform:scale(0); transition:transform .15s}
+  .opt input[type=radio]:checked{border-color:var(--accent)}
+  .opt input[type=radio]:checked::after{transform:scale(1)}
+
+  .opt input[type=checkbox]{appearance:none; -webkit-appearance:none; width:24px; height:24px; flex:none; margin:0;
+    border:2px solid var(--line); border-radius:6px; background:#fff; display:grid; place-content:center; cursor:pointer}
+  .opt input[type=checkbox]::after{content:"✓"; font-weight:800; font-size:16px; color:#fff; display:none}
+  .opt input[type=checkbox]:checked{background:var(--accent); border-color:var(--accent)}
+  .opt input[type=checkbox]:checked::after{display:block}
+
   .opt:has(input:checked){background:var(--accent-soft); border-color:var(--accent)}
-  .opt input:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
-  /* Empresa / convenio */
+
   .convenio{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin:18px 0 0;
     background:var(--paper); border:1.5px solid var(--line); border-radius:14px; padding:10px 14px; font-weight:700}
   .convenio select{font:inherit; font-weight:800; font-size:16px; padding:8px 12px; border:1.5px solid var(--accent);
     border-radius:10px; background:#fff; color:var(--ink); cursor:pointer}
-  /* Opciones Sí / No */
-  .cat .sub{margin:-6px 0 8px; color:var(--muted); font-size:.9rem; font-weight:600}
+
+  /* ESTILO COMPACTO PARA ACOMPAÑAMIENTOS RÁPIDOS (Sopa, Pan, Pebre) */
+  .acomp-block{margin-top:10px; padding-top:10px; border-top:1px dashed var(--line)}
+  .acomp-block:first-child{margin-top:0; padding-top:0; border-top:0}
+  .acomp-title{font-weight:700; font-size:0.95rem; margin-bottom:4px; display:flex; align-items:center; gap:6px}
+  .acomp-sub{margin:0 0 6px; color:var(--muted); font-size:.85rem; font-weight:600}
   .yn{display:flex; gap:10px}
-  .yn .opt{flex:1; justify-content:center; margin:0}
-  /* Plato especial / dieta médica */
+  .yn .opt{flex:1; justify-content:center; margin:0; min-height:44px; padding:8px}
+
   .dieta{display:none; margin-top:8px}
   .dieta.on{display:block}
   .dieta textarea{width:100%; min-height:84px; padding:10px 12px; border:1.5px solid var(--accent); border-radius:12px;
@@ -185,7 +198,7 @@
       <select id="o-empresa" aria-label="Empresa o convenio"></select>
     </label>
 
-    <p class="hint">Elige tu plato principal y tu agregado 👇</p>
+    <p class="hint">Elige tu plato principal y tus acompañamientos 👇</p>
     <div class="grid" id="secciones"><p class="loading">Cargando el menú de hoy…</p></div>
 
     <section class="order" aria-labelledby="order-title">
@@ -237,7 +250,6 @@
   const menuRef = ref(db, 'menu');
   const pedidosRef = ref(db, 'pedidos');
 
-  // Detectar la empresa desde la URL
   const EMPRESAS = { foodpro: 'FoodPro', europer: 'Europer' };
   const urlParams = new URLSearchParams(window.location.search);
   const empRaw = (urlParams.get('empresa') || '').trim().slice(0, 60);
@@ -257,10 +269,9 @@
 
   const empresaActual = () => (tieneParametro ? empresaUrl : 'Particular');
 
-  // Qué cambia en el menú según la empresa
   const PERFILES = {
-    FoodPro: { ocultar: ['pan', 'pebre', 'postres'] },   // sin pan, pebre ni postre
-    Europer: { dieta: true }                              // permite platos especiales / dieta médica
+    FoodPro: { ocultar: ['pan', 'pebre'] },
+    Europer: { dieta: true }
   };
   const DIETA_OTRO = 'Otro plato especial / Dieta médica';
   let dietaTexto = '';
@@ -269,17 +280,24 @@
 
   const THEME_COLORS = { tomate:'#B83A2A', oliva:'#56742A', mostaza:'#9A6608', berenjena:'#6A3858', canela:'#7D4A26' };
 
-  const CATS = [
+  // Agrupamos las categorías normales
+  const CATS_STANDALONE = [
     { key:'principales', title:'Platos Principales',   emo:'🍲', label:'Plato principal', required:true },
     { key:'agregados',   title:'Agregados',            emo:'🍚', label:'Agregado' },
-    { key:'sopa',        title:'Sopa / Entrada',       emo:'🥣', label:'Sopa/Entrada', yesno:true, from:'entradas' },
-    { key:'pan',         title:'Pan',                  emo:'🥖', label:'Pan',          yesno:true },
-    { key:'pebre',       title:'Pebre',                emo:'🌶️', label:'Pebre',        yesno:true },
+    { key:'ensaladas',   title:'Ensaladas (Elige las que quieras)', emo:'🥗', label:'Ensaladas', multi:true },
     { key:'postres',     title:'Postres',              emo:'🍮', label:'Postre' },
     { key:'bebidas',     title:'Bebidas',              emo:'🥤', label:'Bebida' }
   ];
-  const LISTAS = ['principales', 'agregados', 'entradas', 'postres', 'bebidas', 'especiales'];
-  const visibles = () => CATS.filter(c => !(perfil().ocultar || []).includes(c.key));
+
+  // Agrupamos las opciones Sí/No (Sopa, Pan, Pebre) para renderizarlas juntas en 1 sola tarjeta
+  const CATS_ACOMP = [
+    { key:'sopa', title:'Sopa',           emo:'🥣', label:'Sopa',  yesno:true, from:'entradas' },
+    { key:'pan',  title:'Pan',            emo:'🥖', label:'Pan',   yesno:true },
+    { key:'pebre', title:'Pebre',          emo:'🌶️', label:'Pebre', yesno:true }
+  ];
+
+  const LISTAS = ['principales', 'agregados', 'entradas', 'ensaladas', 'postres', 'bebidas', 'especiales'];
+  const esVisible = k => !(perfil().ocultar || []).includes(k);
 
   const DEFAULTS = {
     info: { nombre: 'Restoran San José', direccion: 'Av. Ejemplo 1234, Santiago', horario: 'Lun a Vie · 12:30 a 16:00', whatsapp: '56912345678' },
@@ -287,8 +305,10 @@
     principales: ['Merluza Frita c/arroz y papas fritas', 'Lasaña Boloñesa', 'Cazuela de Cerdo'],
     especiales: ['Bistec a la plancha c/ arroz', 'Pechuga de pollo al jugo c/ puré'],
     especialActivo: true,
-    agregados: ['Arroz', 'Puré de Papas', 'Papas Fritas', 'Ensaladas'],
-    entradas: [], postres: [], bebidas: [], tema: 'tomate'
+    agregados: ['Arroz', 'Puré de Papas', 'Papas Fritas'],
+    entradas: [],
+    ensaladas: ['Surtida', 'Lechuga', 'Betarraga', 'Zanahoria', 'Papas mayo', 'Brócoli', 'Pepino', 'Tomate', 'Chilena'],
+    postres: [], bebidas: [], tema: 'tomate'
   };
 
   const $ = id => document.getElementById(id);
@@ -321,9 +341,13 @@
 
   function render() {
     const prev = {};
-    CATS.forEach(c => {
-      const el = document.querySelector('input[name="' + c.key + '"]:checked');
-      if (el) prev[c.key] = el.value;
+    [...CATS_STANDALONE, ...CATS_ACOMP].forEach(c => {
+      if (c.multi) {
+        prev[c.key] = Array.from(document.querySelectorAll('input[name="' + c.key + '"]:checked')).map(x => x.value);
+      } else {
+        const el = document.querySelector('input[name="' + c.key + '"]:checked');
+        if (el) prev[c.key] = el.value;
+      }
     });
     const dt = document.getElementById('o-dieta');
     if (dt) dietaTexto = dt.value;
@@ -338,7 +362,24 @@
 
     const cont = $('secciones');
     cont.innerHTML = '';
-    visibles().forEach(c => {
+
+    const opcion = (c, name, value, checked, isMulti) => {
+      const lab = document.createElement('label');
+      lab.className = 'opt';
+      const inp = document.createElement('input');
+      inp.type = isMulti ? 'checkbox' : 'radio';
+      inp.name = c.key;
+      inp.value = value;
+      if (c.yesno) inp.dataset.yn = '1';
+      if (checked) { inp.checked = true; inp.dataset.was = '1'; }
+      const span = document.createElement('span');
+      span.textContent = name;
+      lab.append(inp, span);
+      return lab;
+    };
+
+    // Renderizar categorías principales
+    CATS_STANDALONE.filter(c => esVisible(c.key)).forEach(c => {
       const sec = document.createElement('section');
       sec.className = 'cat';
       sec.id = 'sec-' + c.key;
@@ -348,58 +389,26 @@
       h.lastChild.textContent = c.title;
       sec.appendChild(h);
 
-      const opcion = (name, value, checked) => {
-        const lab = document.createElement('label');
-        lab.className = 'opt';
-        const inp = document.createElement('input');
-        inp.type = 'radio';
-        inp.name = c.key;
-        inp.value = value;
-        if (c.yesno) inp.dataset.yn = '1';
-        if (checked) { inp.checked = true; inp.dataset.was = '1'; }
-        const span = document.createElement('span');
-        span.textContent = name;
-        lab.append(inp, span);
-        return lab;
-      };
-
-      if (c.yesno) {
-        const hoy = c.from ? (data[c.from] || []) : [];
-        if (hoy.length) {
-          const sub = document.createElement('p');
-          sub.className = 'sub';
-          sub.textContent = 'Hoy: ' + hoy.join(' / ');
-          sec.appendChild(sub);
-        }
-        const yn = document.createElement('div');
-        yn.className = 'yn';
-        const val = prev[c.key] || 'Sí';
-        yn.append(opcion('Sí', 'Sí', val === 'Sí'), opcion('No', 'No', val === 'No'));
-        sec.appendChild(yn);
-        cont.appendChild(sec);
-        return;
-      }
-
       const items = (data[c.key] || []).slice();
       const conDieta = c.key === 'principales' && perfil().dieta && data.especialActivo !== false;
       if (!items.length && !conDieta) return;
 
-      // Platos principales normales
       items.forEach(name => {
-        sec.appendChild(opcion(name, name, prev[c.key] === name || (c.required && items.length === 1 && !conDieta)));
+        const isChecked = c.multi
+          ? (prev[c.key] || []).includes(name)
+          : (prev[c.key] === name || (c.required && items.length === 1 && !conDieta));
+        sec.appendChild(opcion(c, name, name, isChecked, c.multi));
       });
 
-      // Si es Europer y los especiales están activos, agregamos la lista de especiales
       if (conDieta) {
         const especialesHoy = data.especiales || [];
         especialesHoy.forEach(esp => {
           const valEsp = '⭐ [ESPECIAL] ' + esp;
-          sec.appendChild(opcion(valEsp, valEsp, prev[c.key] === valEsp));
+          sec.appendChild(opcion(c, valEsp, valEsp, prev[c.key] === valEsp));
         });
 
-        // Opción abierta para régimen o platos fuera de carta
         const valOtro = '⭐ [ESPECIAL] ' + DIETA_OTRO;
-        sec.appendChild(opcion(valOtro, valOtro, prev[c.key] === valOtro));
+        sec.appendChild(opcion(c, valOtro, valOtro, prev[c.key] === valOtro));
 
         const box = document.createElement('div');
         box.className = 'dieta';
@@ -412,6 +421,45 @@
       }
       cont.appendChild(sec);
     });
+
+    // RENDERIZAR TARJETA ÚNICA DE ACOMPAÑAMIENTOS RÁPIDOS (Sopa, Pan, Pebre)
+    const acompVisibles = CATS_ACOMP.filter(c => esVisible(c.key));
+    if (acompVisibles.length) {
+      const secAcomp = document.createElement('section');
+      secAcomp.className = 'cat';
+      secAcomp.id = 'sec-acompanamientos';
+      const h = document.createElement('h3');
+      h.innerHTML = '<span class="emo" aria-hidden="true">🥖</span><span>Acompañamientos</span>';
+      secAcomp.appendChild(h);
+
+      acompVisibles.forEach(c => {
+        const block = document.createElement('div');
+        block.className = 'acomp-block';
+
+        const title = document.createElement('div');
+        title.className = 'acomp-title';
+        title.innerHTML = `<span>${c.emo}</span> <span>${c.title}</span>`;
+        block.appendChild(title);
+
+        const hoy = c.from ? (data[c.from] || []) : [];
+        if (hoy.length) {
+          const sub = document.createElement('p');
+          sub.className = 'acomp-sub';
+          sub.textContent = 'Hoy: ' + hoy.join(' / ');
+          block.appendChild(sub);
+        }
+
+        const yn = document.createElement('div');
+        yn.className = 'yn';
+        const val = prev[c.key] || 'Sí';
+        yn.append(opcion(c, 'Sí', 'Sí', val === 'Sí'), opcion(c, 'No', 'No', val === 'No'));
+        block.appendChild(yn);
+        secAcomp.appendChild(block);
+      });
+
+      cont.appendChild(secAcomp);
+    }
+
     updateDieta();
     updateSummary();
   }
@@ -425,9 +473,9 @@
   }
 
   $('secciones').addEventListener('click', e => {
-    const inp = e.target.closest('input[type=radio]');
+    const inp = e.target.closest('input[type=radio], input[type=checkbox]');
     if (!inp) return;
-    if (!inp.dataset.yn) {
+    if (inp.type === 'radio' && !inp.dataset.yn) {
       if (inp.dataset.was === '1') {
         inp.checked = false;
         inp.dataset.was = '';
@@ -436,16 +484,22 @@
         inp.dataset.was = '1';
       }
     }
-    inp.closest('.cat').classList.remove('need');
+    const catSection = inp.closest('.cat');
+    if (catSection) catSection.classList.remove('need');
     updateDieta();
     updateSummary();
   });
+
   $('secciones').addEventListener('input', e => {
     if (e.target.id === 'o-dieta') { dietaTexto = e.target.value; e.target.closest('.cat').classList.remove('need'); updateSummary(); }
   });
 
   function picks() {
-    return visibles().map(c => {
+    return [...CATS_STANDALONE, ...CATS_ACOMP].filter(c => esVisible(c.key)).map(c => {
+      if (c.multi) {
+        const els = Array.from(document.querySelectorAll('input[name="' + c.key + '"]:checked')).map(x => x.value);
+        return { ...c, value: els.length ? els.join(' + ') : 'Sin ensalada' };
+      }
       const el = document.querySelector('input[name="' + c.key + '"]:checked');
       let value = el ? el.value : null;
       if (c.key === 'principales' && value && value.includes('⭐ [ESPECIAL]')) {
@@ -455,6 +509,7 @@
       return { ...c, value };
     });
   }
+
   function qty() {
     const n = parseInt($('o-cant').value, 10);
     return Math.min(50, Math.max(1, isNaN(n) ? 1 : n));
@@ -487,7 +542,6 @@
   $('q-menos').onclick = () => { $('o-cant').value = Math.max(1, qty() - 1); updateSummary(); };$('q-mas').onclick   = () => { $('o-cant').value = Math.min(50, qty() + 1); updateSummary(); };$('o-cant').addEventListener('input', updateSummary);
   $('o-cant').addEventListener('blur', () => {$('o-cant').value = qty(); });
 
-  /* ---------- Protección anti doble clic y anti duplicados ---------- */
   const BLOQUEO_MS = 3000;
   const DUPLICADO_MS = 60 * 1000;
   const ULTIMO_KEY = 'ultimoPedido';
@@ -513,7 +567,6 @@
     }, BLOQUEO_MS);
   }
 
-  /* ---------- Pedido por WhatsApp + Guardado en Firebase ---------- */
   $('btn-wa').onclick = () => {
     if (enviando) return;
     if (!data) { toast('El menú aún se está cargando…'); return; }
