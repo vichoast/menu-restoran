@@ -73,6 +73,9 @@
     font-family:"Fraunces", Georgia, serif; font-weight:800; color:var(--accent);
     font-size:clamp(2.6rem, 13vw, 3.6rem); line-height:1; margin:14px 0 6px;
   }
+  /* Ocultar precio en modo convenio */
+  body.es-convenio .price, body.es-convenio .total span:last-child { display: none !important; }
+
   .includes{color:var(--muted); font-weight:600; margin:0}
 
   .hint{text-align:center; color:var(--muted); margin:22px 0 4px; font-weight:600}
@@ -262,6 +265,7 @@
   if (contenedorConvenio) {
     if (tieneParametro && empresaUrl !== 'Particular') {
       contenedorConvenio.innerHTML = `🏢 Convenio activo: <b>${empresaUrl}</b>`;
+      document.body.classList.add('es-convenio');
     } else {
       contenedorConvenio.style.display = 'none';
     }
@@ -280,7 +284,6 @@
 
   const THEME_COLORS = { tomate:'#B83A2A', oliva:'#56742A', mostaza:'#9A6608', berenjena:'#6A3858', canela:'#7D4A26' };
 
-  // Agrupamos las categorías normales
   const CATS_STANDALONE = [
     { key:'principales', title:'Platos Principales',   emo:'🍲', label:'Plato principal', required:true },
     { key:'agregados',   title:'Agregados',            emo:'🍚', label:'Agregado' },
@@ -289,7 +292,6 @@
     { key:'bebidas',     title:'Bebidas',              emo:'🥤', label:'Bebida' }
   ];
 
-  // Agrupamos las opciones Sí/No (Sopa, Pan, Pebre) para renderizarlas juntas en 1 sola tarjeta
   const CATS_ACOMP = [
     { key:'sopa', title:'Sopa',           emo:'🥣', label:'Sopa',  yesno:true, from:'entradas' },
     { key:'pan',  title:'Pan',            emo:'🥖', label:'Pan',   yesno:true },
@@ -315,6 +317,19 @@
   const clp = n => new Intl.NumberFormat('es-CL', { style:'currency', currency:'CLP', maximumFractionDigits:0 }).format(n || 0);
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
   const fechaLarga = d => cap(new Date(d).toLocaleDateString('es-CL', { weekday:'long', day:'numeric', month:'long' }));
+
+  // Elimina cualquier indicación de precio ($...) para no mostrársela al usuario
+  const limpiarTextoOpcion = raw => raw.replace(/\s*\(\$\d+[\d.]*\)/gi, '').trim();
+
+  // Obtener el precio numérico si viene especificado entre paréntesis ($XXXX)
+  function obtenerPrecioPlato(raw, precioBase) {
+    const match = raw ? raw.match(/\(\$(\d+[\d.]*)\)/) : null;
+    if (match) {
+      const num = parseInt(match[1].replace(/\./g, ''), 10);
+      if (!isNaN(num)) return num;
+    }
+    return precioBase;
+  }
 
   function toList(v) {
     if (Array.isArray(v)) return v.filter(Boolean).map(String);
@@ -363,17 +378,18 @@
     const cont = $('secciones');
     cont.innerHTML = '';
 
-    const opcion = (c, name, value, checked, isMulti) => {
+    const opcion = (c, nameRaw, valRaw, checked, isMulti) => {
       const lab = document.createElement('label');
       lab.className = 'opt';
       const inp = document.createElement('input');
       inp.type = isMulti ? 'checkbox' : 'radio';
       inp.name = c.key;
-      inp.value = value;
+      inp.value = valRaw; // Mantiene el valor raw para cálculo
       if (c.yesno) inp.dataset.yn = '1';
       if (checked) { inp.checked = true; inp.dataset.was = '1'; }
       const span = document.createElement('span');
-      span.textContent = name;
+      // Oculta el ($precio) de la vista del cliente
+      span.textContent = limpiarTextoOpcion(nameRaw);
       lab.append(inp, span);
       return lab;
     };
@@ -422,7 +438,7 @@
       cont.appendChild(sec);
     });
 
-    // RENDERIZAR TARJETA ÚNICA DE ACOMPAÑAMIENTOS RÁPIDOS (Sopa, Pan, Pebre)
+    // RENDERIZAR TARJETA ÚNICA DE ACOMPAÑAMIENTOS RÁPIDOS
     const acompVisibles = CATS_ACOMP.filter(c => esVisible(c.key));
     if (acompVisibles.length) {
       const secAcomp = document.createElement('section');
@@ -515,6 +531,13 @@
     return Math.min(50, Math.max(1, isNaN(n) ? 1 : n));
   }
 
+  function calcularPrecioUnitario() {
+    if (!data) return 0;
+    const el = document.querySelector('input[name="principales"]:checked');
+    if (!el) return data.precio || 6500;
+    return obtenerPrecioPlato(el.value, data.precio || 6500);
+  }
+
   function updateSummary() {
     if (!data) return;
     const sel = picks().filter(p => p.value);
@@ -528,14 +551,23 @@
         if (i) p.append(' · ');
         const b = document.createElement('b');
         b.textContent = s.label + ': ';
-        p.append(b, s.value);
+        p.append(b, limpiarTextoOpcion(s.value));
       });
     }
+
+    const unitario = calcularPrecioUnitario();
     const t = document.createElement('div');
     t.className = 'total';
     t.innerHTML = '<span></span><span></span>';
     t.firstChild.textContent = 'Total (' + qty() + (qty() === 1 ? ' almuerzo)' : ' almuerzos)');
-    t.lastChild.textContent = clp(data.precio * qty());
+
+    // Si no es convenio, muestra el total en la parte inferior
+    if (empresaActual() === 'Particular') {
+      t.lastChild.textContent = clp(unitario * qty());
+    } else {
+      t.lastChild.textContent = '';
+    }
+
     box.append(p, t);
   }
 
@@ -595,7 +627,8 @@
     const nombre = $('o-nombre').value.trim() || 'Anónimo / Sin nombre';
     const nota = $('o-nota').value.trim();
     const n = qty();
-    const detallePlatos = sel.filter(s => s.value).map(s => `${s.label}: ${s.value}`).join(' | ');
+    const unitario = calcularPrecioUnitario();
+    const detallePlatos = sel.filter(s => s.value).map(s => `${s.label}: ${limpiarTextoOpcion(s.value)}`).join(' | ');
 
     const h = huella(nombre, detallePlatos);
     const ultimo = leerUltimo();
@@ -612,7 +645,7 @@
       cantidad: n,
       detalle: detallePlatos,
       nota: nota,
-      total: data.precio * n,
+      total: unitario * n,
       estado: 'confirmado',
       fecha: new Date().toISOString()
     };
@@ -625,8 +658,11 @@
 
     let msg = '¡Hola ' + data.info.nombre + '! 👋\n';
     msg += 'Quiero pedir ' + (n === 1 ? 'un almuerzo' : n + ' almuerzos') + ' del Menú del Día (' + fechaLarga(Date.now()) + '):\n\n';
-    sel.filter(s => s.value).forEach(s => { msg += '• ' + s.label + ': ' + s.value + '\n'; });
-    msg += '\nTotal: ' + clp(data.precio * n);
+    sel.filter(s => s.value).forEach(s => { msg += '• ' + s.label + ': ' + limpiarTextoOpcion(s.value) + '\n'; });
+
+    if (empresaActual() === 'Particular') {
+      msg += '\nTotal: ' + clp(unitario * n);
+    }
     msg += '\nNombre: ' + nombre;
     if (empresaActual() !== 'Particular') msg += '\nEmpresa: ' + empresaActual();
     if (nota) msg += '\nComentario: ' + nota;

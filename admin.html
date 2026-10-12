@@ -40,7 +40,6 @@
   .btn-main { width: 100%; padding: 14px; background: var(--primary); color: white; border: 0; border-radius: 12px; font-weight: 800; font-size: 1.05rem; cursor: pointer; margin-top: 10px; }
   .btn-main:hover { background: var(--primary-hover); }
 
-  /* Ensaladas Manager UI */
   .ensaladas-box { background: #f8fafc; border: 1.5px solid var(--line); padding: 12px; border-radius: 10px; margin-top: 4px; }
   .ensaladas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-top: 8px; }
   .ensalada-toggle { display: flex; align-items: center; gap: 8px; background: #ffffff; border: 1.5px solid var(--line); padding: 8px 10px; border-radius: 8px; font-size: 0.88rem; font-weight: 700; cursor: pointer; user-select: none; }
@@ -110,7 +109,7 @@
   </header>
 
   <div class="cocina-box">
-    <h3>📊 Resumen del Día para Cocina</h3>
+    <h3>📊 Resumen del Día (Cobro y Cocina)</h3>
     <div class="cocina-items" id="summary-cocina">Cargando acumulados...</div>
   </div>
 
@@ -120,13 +119,18 @@
       <div class="card">
         <h2>📝 Menú del Día</h2>
         <div class="field">
-          <label>Precio Menú General ($)</label>
+          <label>Precio Menú General / Base ($)</label>
           <input type="number" id="m-precio" placeholder="6500">
         </div>
+
         <div class="field">
           <label>Platos Principales (uno por línea)</label>
-          <textarea id="m-principales" placeholder="Cazuela&#10;Lasaña&#10;Merluza Frita"></textarea>
+          <small style="color:var(--muted); display:block; margin-bottom:4px;">
+            💡 Si un plato cuesta distinto al menú general, pon su precio al final entre paréntesis, ej: <b>Bistec ($7.500)</b> o <b>Plateada ($8.500)</b>. El cliente NO verá este monto.
+          </small>
+          <textarea id="m-principales" placeholder="Cazuela&#10;Lasaña&#10;Bistec a lo Pobre ($7.500)&#10;Plateada al Horno ($8.500)"></textarea>
         </div>
+
         <div class="field">
           <label>Agregados (uno por línea)</label>
           <textarea id="m-agregados" placeholder="Arroz&#10;Puré&#10;Papas Fritas"></textarea>
@@ -138,7 +142,7 @@
 
         <!-- EDITAR Y ACTIVAR/DESACTIVAR ENSALADAS -->
         <div class="field">
-          <label>🥗 Lista Maestra de Ensaladas (puedes agregar o quitar opciones escribiendo abajo, una por línea):</label>
+          <label>🥗 Lista Maestra de Ensaladas (escribe opciones, una por línea):</label>
           <textarea id="m-ensaladas-master" placeholder="Surtida&#10;Lechuga&#10;Betarraga&#10;Zanahoria&#10;Papas mayo&#10;Brócoli&#10;Pepino&#10;Tomate&#10;Chilena"></textarea>
 
           <div class="ensaladas-box">
@@ -147,7 +151,7 @@
               <button type="button" class="btn-reset-ensaladas" id="btn-reset-ensaladas">🔄 Marcar todas disponibles</button>
             </div>
             <div class="ensaladas-grid" id="ensaladas-container">
-              <!-- Se generan dinámicamente según lo escrito arriba -->
+              <!-- Se generan dinámicamente -->
             </div>
           </div>
         </div>
@@ -164,9 +168,9 @@
             <b>Habilitar "Platos Especiales / Dietas" (Europer)</b>
           </label>
           <label style="font-size:0.85rem; color:var(--muted); margin-bottom:4px; display:block;">
-            Platos Especiales disponibles hoy (uno por línea):
+            Platos Especiales disponibles hoy (uno por línea, puedes incluir precio entre paréntesis):
           </label>
-          <textarea id="m-especiales" placeholder="Bistec a la plancha c/ arroz&#10;Pechuga de pollo al jugo c/ puré&#10;Dieta blanda médica"></textarea>
+          <textarea id="m-especiales" placeholder="Bistec a la plancha c/ arroz ($7.500)&#10;Pechuga al jugo c/ puré&#10;Dieta blanda médica ($8.000)"></textarea>
         </div>
 
         <button class="btn-main" id="btn-guardar">Guardar y Publicar Menú</button>
@@ -230,7 +234,7 @@
   const esc = v => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
 
   const DEFAULT_ENSALADAS = ['Surtida', 'Lechuga', 'Betarraga', 'Zanahoria', 'Papas mayo', 'Brócoli', 'Pepino', 'Tomate', 'Chilena'];
-  let ensaladasEstado = {};   // nombre -> true/false (solo en memoria; en Firebase se guarda la lista "ensaladas" disponibles)
+  let ensaladasEstado = {};
 
   onAuthStateChanged(auth, user => {
     if (user) {
@@ -274,7 +278,6 @@
     });
   }
 
-  // Al escribir o borrar ensaladas en la caja de texto, se actualizan los switches automáticamente
   $('m-ensaladas-master').addEventListener('input', renderEnsaladasAdmin);
 
   $('btn-reset-ensaladas').onclick = () => {
@@ -296,7 +299,6 @@
       const master = data.ensaladasMaster || DEFAULT_ENSALADAS;
       $('m-ensaladas-master').value = master.join('\n');
 
-      // Disponibilidad: se deduce de la lista "ensaladas" publicada (la que ve el cliente)
       const disponibles = Array.isArray(data.ensaladas) ? data.ensaladas : null;
       ensaladasEstado = {};
       master.forEach(item => { ensaladasEstado[item] = disponibles ? disponibles.includes(item) : true; });
@@ -326,7 +328,6 @@
       entradas: splitLines('m-entradas'),
       ensaladasMaster: masterList,
       ensaladas: ensaladasDisponibles,
-      // Ya no se guarda como objeto: un nombre con "/" o "." (ej. "Papas c/mayo") haría fallar el guardado
       ensaladasEstado: null,
       postres: splitLines('m-postres'),
       especialActivo: $('m-especial-act').checked,
@@ -362,19 +363,21 @@
     let sopasCount = 0;
     let ensaladasCount = 0;
     let almuerzosCount = 0;
+    let totalDineroFacturar = 0;
 
     pedidosHoy = {};
     items.forEach(p => {
       pedidosHoy[p.id] = p;
       if (p.estado !== 'anulado') {
-        almuerzosCount += (Number(p.cantidad) || 1);
-        // "Sopa: Sí" (formato actual) o "Sopa/Entrada: Sí" (pedidos antiguos)
+        const c = (Number(p.cantidad) || 1);
+        almuerzosCount += c;
+        totalDineroFacturar += (Number(p.total) || 0);
+
         if (p.detalle && /sopa(\/entrada)?: sí/i.test(p.detalle)) {
-          sopasCount += (Number(p.cantidad) || 1);
+          sopasCount += c;
         }
-        // Cualquier ensalada elegida ("Ensaladas: Lechuga + Tomate"), excepto "No" / "Sin ensalada"
         if (p.detalle && /ensaladas?: (?!no\b|sin ensalada)/i.test(p.detalle)) {
-          ensaladasCount += (Number(p.cantidad) || 1);
+          ensaladasCount += c;
         }
       }
 
@@ -396,7 +399,7 @@
         <div class="pedido-body">${esc(p.detalle || '')}</div>
         ${p.nota ? `<div class="pedido-nota">💬 "${esc(p.nota)}"</div>` : ''}
         <div class="pedido-footer">
-          <span class="pedido-total">${clp(p.total)}</span>
+          <span class="pedido-total">Cobro: ${clp(p.total)}</span>
           <div class="acciones">
             ${p.estado === 'anulado' ? '' : `<button class="btn-sm btn-ticket" onclick="imprimirTicket('${esc(p.id)}')">🖨️ Ticket</button>`}
             <button class="btn-sm ${p.estado === 'anulado' ? '' : 'btn-danger'}" onclick="toggleAnular('${esc(p.id)}', '${esc(p.estado)}')">
@@ -411,7 +414,8 @@
     $('summary-cocina').innerHTML = `
       <span>🍱 Almuerzos: <b>${almuerzosCount}</b></span> |
       <span>🥣 Sopas: <b>${sopasCount}</b></span> |
-      <span>🥗 Ensaladas: <b>${ensaladasCount}</b></span>
+      <span>🥗 Ensaladas: <b>${ensaladasCount}</b></span> |
+      <span style="color:#15803d;">💰 Total a Facturar hoy: <b>${clp(totalDineroFacturar)}</b></span>
     `;
   }
 
