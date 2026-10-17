@@ -155,6 +155,10 @@
   .fp-hint{margin:12px 0 0; font-size:.92rem; color:var(--suave)}
   #sec-ensaladas{display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); column-gap:8px}
   #sec-ensaladas h3{grid-column:1/-1}
+  #sec-ensaladas .opt.surtida{grid-column:1/-1}
+  .opt.surtida small{display:block; font-size:.85rem; font-weight:500; color:var(--suave)}
+  .ens-o{grid-column:1/-1; display:flex; align-items:center; gap:12px; margin:8px 0 4px; color:var(--suave); font-weight:700; font-size:.92rem}
+  .ens-o::before, .ens-o::after{content:""; flex:1; border-top:1.5px dashed var(--borde)}
   #sec-ensaladas .opt{margin:4px 0}
 
   .acomp-block{display:grid; grid-template-columns:1fr auto; align-items:center; gap:4px 16px; padding:12px 0; border-top:1px solid var(--borde)}
@@ -406,6 +410,7 @@
   let eleccionFP = null; // 'Ensalada' | 'Postre' | null
   const norm = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   const esFP = () => !!perfil().eleccion;
+  const esSurtida = v => norm(limpiarTextoOpcion(String(v))) === 'surtida';
 
   const perfil = () => PERFILES[empresaActual()] || {};
 
@@ -526,7 +531,9 @@
       sec.id = 'sec-' + c.key;
       const h = document.createElement('h3');
       h.innerHTML = '<span class="emo" aria-hidden="true">' + icon(c.key) + '</span><span></span>';
-      h.lastChild.textContent = c.title;
+      // FoodPro: una sola ensalada (respuesta B de la administración)
+      const unaEnsalada = c.key === 'ensaladas' && esFP();
+      h.lastChild.textContent = unaEnsalada ? 'Ensaladas (elige una)' : c.title;
       sec.appendChild(h);
 
       let items = (data[c.key] || []).slice();
@@ -541,8 +548,28 @@
         const isChecked = c.multi
           ? (prev[c.key] || []).includes(name)
           : (prev[c.key] === name || (c.required && items.length === 1 && !conDieta));
-        sec.appendChild(opcion(c, name, name, isChecked, c.multi));
+        const lab = opcion(c, name, name, isChecked, c.multi && !unaEnsalada);
+        if (c.key === 'ensaladas' && esSurtida(name)) {
+          lab.classList.add('surtida');
+          const nota = document.createElement('small');
+          nota.textContent = 'La cocina elige la mezcla del día';
+          lab.querySelector('span').appendChild(nota);
+        }
+        sec.appendChild(lab);
       });
+      // Surtida va primero y separada: o eliges surtida, o eliges cuáles quieres
+      if (c.key === 'ensaladas') {
+        const sur = sec.querySelector('.opt.surtida');
+        if (sur) {
+          sec.insertBefore(sur, h.nextSibling);
+          if (sec.querySelectorAll('.opt').length > 1) {
+            const o = document.createElement('div');
+            o.className = 'ens-o';
+            o.textContent = unaEnsalada ? 'o elige una de estas' : 'o elige las que quieras';
+            sec.insertBefore(o, sur.nextSibling);
+          }
+        }
+      }
 
       if (conDieta) {
         const especialesHoy = data.especiales || [];
@@ -551,7 +578,8 @@
           sec.appendChild(opcion(c, valEsp, valEsp, prev[c.key] === valEsp));
         });
 
-        const valOtro = MARCA_AUT + ' ' + DIETA_OTRO;
+        const precioOtro = Number(data.precioOtroEspecial) > 0 ? ' ($' + String(Math.round(Number(data.precioOtroEspecial))).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ')' : '';
+        const valOtro = MARCA_AUT + ' ' + DIETA_OTRO + precioOtro;
         sec.appendChild(opcion(c, valOtro, valOtro, prev[c.key] === valOtro));
 
         const box = document.createElement('div');
@@ -664,6 +692,13 @@
         document.querySelectorAll('input[name="' + inp.name + '"]').forEach(x => x.dataset.was = '');
         inp.dataset.was = '1';
       }
+    }
+    // Surtida no se combina con otras ensaladas
+    if (inp.name === 'ensaladas' && inp.type === 'checkbox' && inp.checked) {
+      const surt = esSurtida(inp.value);
+      document.querySelectorAll('input[name="ensaladas"]:checked').forEach(x => {
+        if (x !== inp && (surt || esSurtida(x.value))) x.checked = false;
+      });
     }
     if (inp.name === 'fp-eleccion') {
       eleccionFP = inp.checked ? inp.value : null;
@@ -821,7 +856,7 @@
       const sec = $('sec-ensaladas');
       sec.classList.add('need');
       sec.scrollIntoView({ behavior:'smooth', block:'start' });
-      toast('Marca qué ensalada quieres, o elige Postre');
+      toast('Elige cuál ensalada quieres, o elige Postre');
       return;
     }
     if (((data.principales || []).length || perfil().dieta) && !principal.value) {

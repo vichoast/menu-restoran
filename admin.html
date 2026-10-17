@@ -97,7 +97,8 @@
   .resumen .cargando{color:var(--suave); font-weight:700}
 
   /* ---------- Navegación grande ---------- */
-  .nav{display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin:26px 0 22px}
+  .nav{display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin:26px 0 22px}
+  @media (max-width:700px){ .nav{grid-template-columns:1fr 1fr} }
   .nav button{
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
     min-height:96px; padding:12px 8px; border-radius:18px; border:2.5px solid var(--borde); background:#fff; cursor:pointer;
@@ -167,10 +168,54 @@
   .ensalada-toggle.off span{text-decoration:line-through}
 
   .especial-box{background:#fff; border:2px solid var(--borde); padding:18px; border-radius:16px}
+  .esp-cab{display:grid; grid-template-columns:1fr 170px 64px; gap:10px; font-weight:800; font-size:.9rem; color:var(--suave); padding:0 2px 6px}
+  .esp-fila{display:grid; grid-template-columns:1fr 170px 64px; gap:10px; align-items:center; margin-bottom:10px}
+  .precio-box{position:relative}
+  .precio-box span{position:absolute; left:16px; top:50%; transform:translateY(-50%); font-weight:800; color:var(--suave); pointer-events:none}
+  .precio-box input{padding-left:34px; font-weight:800}
+  .precio-box input::placeholder{font-weight:400; font-size:.9rem}
+  .btn-quitar{width:64px; min-height:58px; padding:0; border-radius:14px}
+  .btn-agregar{width:auto; min-height:58px; padding:10px 20px; font-size:1rem; margin-top:4px}
+  .esp-otro{margin-top:18px; padding-top:16px; border-top:2px dashed var(--borde)}
+  .esp-otro .esp-fila{grid-template-columns:1fr 170px}
+  .esp-otro .fijo{font-weight:800; padding:14px 0}
+  @media (max-width:560px){
+    .esp-cab{display:none}
+    .esp-fila{grid-template-columns:1fr 64px; padding:12px; border:2px solid var(--borde); border-radius:14px}
+    .esp-fila .precio-box{grid-column:1; grid-row:2}
+    .esp-fila .btn-quitar{grid-column:2; grid-row:1 / span 2; min-height:100%}
+    .esp-otro .esp-fila{grid-template-columns:1fr}
+  }
   .switch{display:flex; align-items:center; gap:14px; cursor:pointer; font-weight:800; margin-bottom:12px}
   .switch input{width:32px; height:32px; accent-color:var(--verde); flex:none}
   .sep{border:0; border-top:2px dashed var(--borde); margin:6px 0 24px}
   .guardar-bar{position:sticky; bottom:12px; margin-top:8px; z-index:5}
+
+  /* ---------- Resumen para reparto ---------- */
+  .rep-cards{display:grid; gap:14px; margin-bottom:26px}
+  @media (min-width:800px){ .rep-cards{grid-template-columns:repeat(2, minmax(0,1fr))} }
+  .rep-card{display:flex; align-items:center; gap:16px; background:#fff; border:2.5px solid var(--borde); border-left:10px solid var(--oliva); border-radius:18px; padding:18px 18px 18px 20px}
+  .rep-card .info{flex:1; min-width:0}
+  .rep-card h3{font-size:1.6rem; font-weight:800}
+  .rep-card p{color:var(--suave); font-weight:700}
+  .rep-card .btn{width:auto; min-width:150px}
+  .rep-card.vacia{border-left-color:var(--borde)}
+  .rep-card .btn:disabled{opacity:.4; cursor:not-allowed}
+  @media (max-width:520px){ .rep-card{flex-direction:column; align-items:stretch} .rep-card .btn{width:100%} }
+  .rep-mano{background:#fff; border:2px solid var(--borde); border-radius:16px; padding:16px 18px}
+  .rep-mano summary{cursor:pointer; font-weight:800; font-size:1.1rem; min-height:44px; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+  .rep-mano summary span{font-weight:500; color:var(--suave); font-size:1rem}
+  .rep-mano summary::-webkit-details-marker{display:none}
+  .rep-mano summary::before{content:'+'; display:grid; place-items:center; width:32px; height:32px; border-radius:50%; background:var(--crema-2); border:2px solid var(--borde); font-size:1.2rem; flex:none}
+  .rep-mano[open] summary::before{content:'−'}
+  .rep-mano[open] summary{margin-bottom:6px}
+  .rep-lista{display:grid; gap:8px; margin-bottom:16px}
+  .rep-item{display:flex; align-items:center; gap:14px; min-height:64px; padding:10px 16px; background:#fff; border:2.5px solid var(--borde); border-radius:14px; cursor:pointer; font-size:1.05rem}
+  .rep-item input{width:30px; height:30px; accent-color:var(--verde); flex:none}
+  .rep-item:has(input:checked){border-color:var(--verde); background:var(--verde-claro)}
+  .rep-item .q{margin-left:auto; font-weight:800; white-space:nowrap}
+  .rep-item .emp{font-size:.85rem; font-weight:800; color:var(--suave)}
+  #rep-imprimir:disabled{opacity:.5; cursor:not-allowed}
 
   /* ---------- Aviso flotante ---------- */
   .toast{position:fixed; left:50%; bottom:24px; transform:translate(-50%, 40px); opacity:0; pointer-events:none; z-index:60;
@@ -194,6 +239,12 @@
     #ticket .t-item { font-size: 1.1em; padding-left: 3mm; text-indent: -3mm; }
     #ticket .t-item::before { content: "- "; }
     #ticket .t-obs { font-weight: 700; font-size: 1.1em; margin-top: 5px; border: 1px solid #000; padding: 2px 4px; }
+    #ticket .r-tit { font-weight: 700; font-size: 1.35em; line-height: 1.15; }
+    #ticket .r-sub { font-size: 1em; margin-bottom: 2px; }
+    #ticket .r-sec { font-weight: 700; font-size: 1em; text-transform: uppercase; margin-top: 6px; border-bottom: 1px solid #000; }
+    #ticket .r-fila { display: flex; gap: 2.5mm; font-size: 1.15em; line-height: 1.3; }
+    #ticket .r-fila b { min-width: 7mm; text-align: right; }
+    #ticket .r-obs { font-size: 1em; padding-left: 3mm; text-indent: -3mm; }
   }
 </style>
 </head>
@@ -258,6 +309,10 @@
       <button type="button" role="tab" aria-selected="false" data-tab="tab-local">
         <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10l1.5-5h13L20 10"/><path d="M4 10h16v2a3 3 0 0 1-5.3 2 3 3 0 0 1-5.4 0A3 3 0 0 1 4 12z"/><path d="M5 14v6h14v-6"/></svg>
         Datos del local
+      </button>
+      <button type="button" role="tab" aria-selected="false" data-tab="tab-reparto">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>
+        Resumen para reparto
       </button>
     </nav>
 
@@ -324,9 +379,22 @@
           <input type="checkbox" id="m-especial-act">
           <span>Mostrar platos “Solo autorizados” y dietas (para Europer)</span>
         </label>
-        <label class="lbl" for="m-especiales" style="font-size:1rem">Platos “Solo autorizados” de hoy</label>
-        <p class="help">Uno por línea. Puedes poner el precio entre paréntesis.</p>
-        <textarea id="m-especiales" placeholder="Bistec a la plancha c/ arroz ($7.500)&#10;Pechuga al jugo c/ puré&#10;Dieta blanda médica ($8.000)"></textarea>
+        <span class="lbl" style="font-size:1rem">Platos “Solo autorizados” de hoy</span>
+        <p class="help" style="margin-bottom:12px">Escribe el plato a la izquierda y su precio a la derecha, <b>solo números</b>. Si dejas el precio vacío, se cobra el precio general del menú. El cliente no ve estos precios.</p>
+        <div class="esp-cab" aria-hidden="true"><span>Plato</span><span>Precio</span><span></span></div>
+        <div id="esp-lista"></div>
+        <button type="button" class="btn btn-borde btn-agregar" id="btn-esp-agregar">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          Agregar otro plato
+        </button>
+        <div class="esp-otro">
+          <span class="lbl" style="font-size:1rem">Precio de “Otro plato / Dieta médica”</span>
+          <p class="help" style="margin-bottom:10px">Es la opción donde el trabajador escribe su dieta. Si lo dejas vacío, se cobra el precio general.</p>
+          <div class="esp-fila">
+            <span class="fijo">Otro plato / Dieta médica</span>
+            <label class="precio-box"><span>$</span><input type="number" id="m-precio-otro" inputmode="numeric" min="0" step="100" placeholder="General" aria-label="Precio de Otro plato o Dieta médica"></label>
+          </div>
+        </div>
       </div>
 
       <div class="guardar-bar">
@@ -335,6 +403,24 @@
           Guardar y publicar el menú de hoy
         </button>
       </div>
+    </section>
+
+    <!-- ===== RESUMEN PARA REPARTO ===== -->
+    <section class="panel hidden" id="tab-reparto" role="tabpanel">
+      <h2>Resumen para reparto</h2>
+      <p class="intro">Toca <b>Imprimir</b> y sale un sticker con todo lo que hay que llevar a esa empresa.</p>
+
+      <div class="rep-cards" id="rep-cards"><p class="vacio">Todavía no hay pedidos hoy.</p></div>
+
+      <details class="rep-mano" id="rep-mano">
+        <summary>¿Solo algunos pedidos? <span>(por ejemplo, los del Cesfam)</span></summary>
+        <p class="help" style="margin:4px 0 14px">Marca los pedidos que van juntos y aprieta el botón de abajo.</p>
+        <div class="rep-lista" id="rep-lista"></div>
+        <button type="button" class="btn btn-carbon" id="rep-imprimir">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>
+          <span id="rep-imprimir-txt">Imprimir los marcados</span>
+        </button>
+      </details>
     </section>
 
     <!-- ===== DATOS DEL LOCAL ===== -->
@@ -420,7 +506,7 @@
   document.querySelectorAll('.nav button').forEach(b => {
     b.addEventListener('click', () => {
       document.querySelectorAll('.nav button').forEach(x => x.setAttribute('aria-selected', x === b ? 'true' : 'false'));
-      ['tab-pedidos', 'tab-menu', 'tab-local'].forEach(id => $(id).classList.toggle('hidden', id !== b.dataset.tab));
+      ['tab-pedidos', 'tab-menu', 'tab-local', 'tab-reparto'].forEach(id => $(id).classList.toggle('hidden', id !== b.dataset.tab));
     });
   });
 
@@ -488,6 +574,55 @@
     renderEnsaladasAdmin();
   };
 
+  // ---- Platos "Solo autorizados": nombre + precio en casillas separadas ----
+  // Se guardan en Firebase como "Nombre ($7.500)" para que la página de clientes los siga leyendo igual.
+  const RE_PRECIO = /^(.*?)\s*\(\s*\$\s*([\d.]+)\s*\)\s*$/;
+  const separarPrecio = txt => {
+    const m = String(txt || '').match(RE_PRECIO);
+    return m ? { nombre: m[1].trim(), precio: Number(m[2].replace(/\./g, '')) || '' } : { nombre: String(txt || '').trim(), precio: '' };
+  };
+  const fmtMiles = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+  function filaEspecial(nombre = '', precio = '') {
+    const fila = document.createElement('div');
+    fila.className = 'esp-fila';
+    fila.innerHTML =
+      '<input type="text" class="esp-nombre" placeholder="Ej: Salmón con arroz" aria-label="Nombre del plato">' +
+      '<label class="precio-box"><span>$</span><input type="number" class="esp-precio" inputmode="numeric" min="0" step="100" placeholder="General" aria-label="Precio del plato"></label>' +
+      '<button type="button" class="btn btn-peligro btn-quitar" aria-label="Quitar este plato">' + IC.trash + '</button>';
+    fila.querySelector('.esp-nombre').value = nombre;
+    fila.querySelector('.esp-precio').value = precio;
+    fila.querySelector('.btn-quitar').onclick = () => {
+      fila.remove();
+      if (!$('esp-lista').children.length) $('esp-lista').appendChild(filaEspecial());
+    };
+    return fila;
+  }
+
+  function renderEspeciales(lista) {
+    const cont = $('esp-lista');
+    cont.innerHTML = '';
+    lista.forEach(txt => { const { nombre, precio } = separarPrecio(txt); cont.appendChild(filaEspecial(nombre, precio)); });
+    if (!lista.length) cont.appendChild(filaEspecial());
+  }
+
+  function leerEspeciales() {
+    return [...document.querySelectorAll('#esp-lista .esp-fila')].map(f => {
+      // Si alguien escribió el precio dentro del nombre, se separa igual
+      const dentro = separarPrecio(f.querySelector('.esp-nombre').value);
+      const nombre = dentro.nombre.replace(/[()$]/g, '').trim();
+      const precio = Number(f.querySelector('.esp-precio').value) || Number(dentro.precio) || 0;
+      if (!nombre) return null;
+      return precio > 0 ? nombre + ' ($' + fmtMiles(precio) + ')' : nombre;
+    }).filter(Boolean);
+  }
+
+  $('btn-esp-agregar').onclick = () => {
+    const f = filaEspecial();
+    $('esp-lista').appendChild(f);
+    f.querySelector('.esp-nombre').focus();
+  };
+
   function cargarDatos() {
     onValue(ref(db, 'menu'), snap => {
       const data = snap.val() || {};
@@ -497,7 +632,8 @@
       $('m-entradas').value = (data.entradas || []).join('\n');
       $('m-postres').value = (data.postres || []).join('\n');
       $('m-especial-act').checked = data.especialActivo !== false;
-      $('m-especiales').value = (data.especiales || []).join('\n');
+      renderEspeciales(data.especiales || []);
+      $('m-precio-otro').value = data.precioOtroEspecial > 0 ? data.precioOtroEspecial : '';
 
       const master = data.ensaladasMaster || DEFAULT_ENSALADAS;
       $('m-ensaladas-master').value = master.join('\n');
@@ -516,6 +652,7 @@
 
     onValue(ref(db, 'pedidos'), snap => {
       renderPedidos(snap.val() || {});
+      renderReparto();
     });
   }
 
@@ -534,7 +671,8 @@
       ensaladasEstado: null,
       postres: splitLines('m-postres'),
       especialActivo: $('m-especial-act').checked,
-      especiales: splitLines('m-especiales')
+      especiales: leerEspeciales(),
+      precioOtroEspecial: Number($('m-precio-otro').value) > 0 ? Math.round(Number($('m-precio-otro').value)) : null
     };
     update(ref(db, 'menu'), menuData).then(() => aviso('¡Listo! El menú ya está publicado.')).catch(e => alert('No se pudo guardar el menú.\n\nDetalle: ' + e.message));
   };
@@ -561,6 +699,7 @@
       .reverse();
 
     if (!items.length) {
+      pedidosHoy = {};
       cont.innerHTML = '<div class="vacio"><b>Todavía no llegan pedidos hoy</b>Cuando un cliente pida, aparecerá aquí solo.</div>';
       $('summary-cocina').innerHTML = tile(IC.plato, 'Almuerzos', 0) + tile(IC.sopa, 'Sopas', 0) + tile(IC.hoja, 'Ensaladas', 0) + tile(IC.postre, 'Postres', 0) + tile(IC.plata, 'Total a cobrar hoy', clp(0), 'dinero');
       return;
@@ -649,6 +788,133 @@
   }
 
   let pedidosHoy = {};
+
+  // ================= RESUMEN PARA REPARTO =================
+  let repSel = new Set();       // pedidos marcados a mano
+
+  const repActivos = () => Object.values(pedidosHoy)
+    .filter(p => p.estado !== 'anulado')
+    .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+  const nAlm = lista => lista.reduce((t, p) => t + (Number(p.cantidad) || 1), 0);
+  const plural = (n, s1, s2) => n + ' ' + (n === 1 ? s1 : s2);
+
+  function calcularResumen(lista) {
+    const cuenta = { platos:{}, agregados:{}, ensaladas:{}, sopas:0, postres:0, almuerzos:0, obs:[] };
+    const sumar = (obj, k, n) => { obj[k] = (obj[k] || 0) + n; };
+    lista.forEach(p => {
+      const n = Number(p.cantidad) || 1;
+      cuenta.almuerzos += n;
+      String(p.detalle || '').split(' | ').forEach(linea => {
+        const i = linea.indexOf(':');
+        if (i < 0) return;
+        const k = linea.slice(0, i).trim().toLowerCase();
+        let v = linea.slice(i + 1).trim();
+        if (k === 'plato principal') {
+          v = v.replace(/⭐\s*\[(SOLO AUTORIZADOS|ESPECIAL)\]\s*/i, '');
+          sumar(cuenta.platos, v, n);
+        } else if (k === 'agregado') {
+          sumar(cuenta.agregados, v, n);
+        } else if (k === 'ensaladas' || k === 'ensalada') {
+          if (!/^(sin ensalada|no)$/i.test(v)) v.split('+').map(x => x.trim()).filter(Boolean).forEach(e => sumar(cuenta.ensaladas, e, n));
+        } else if (k === 'sopa' || k === 'sopa/entrada') {
+          if (/^s[ií]/i.test(v)) cuenta.sopas += n;
+        } else if (k === 'postre') {
+          if (!/^no$/i.test(v)) cuenta.postres += n;
+        }
+      });
+      if (p.nota) cuenta.obs.push((p.cliente || 'Sin nombre') + ': ' + p.nota);
+    });
+    return cuenta;
+  }
+
+  function resumenHTML(lista) {
+    const c = calcularResumen(lista);
+    const filas = obj => Object.entries(obj).sort((a, b) => b[1] - a[1])
+      .map(([k, v]) => '<div class="r-fila"><b>' + v + '</b><span>' + esc(k) + '</span></div>').join('');
+    const emps = [...new Set(lista.map(p => p.empresa || 'Particular'))];
+    const grupo = emps.length === 1 ? (emps[0] === 'Particular' ? 'Particulares' : emps[0]) : 'Reparto';
+    const fecha = new Date().toLocaleDateString('es-CL', { weekday:'long', day:'numeric', month:'long' });
+    let h = '<div class="r-tit">' + esc(grupo) + ' · ' + c.almuerzos + ' almuerzo' + (c.almuerzos === 1 ? '' : 's') + '</div>' +
+            '<div class="r-sub">' + esc(fecha) + ' · ' + lista.length + ' pedido' + (lista.length === 1 ? '' : 's') + '</div>';
+    if (Object.keys(c.platos).length) h += '<div class="r-sec">Platos</div>' + filas(c.platos);
+    if (Object.keys(c.agregados).length) h += '<div class="r-sec">Agregados</div>' + filas(c.agregados);
+    const extras = (c.sopas ? '<div class="r-fila"><b>' + c.sopas + '</b><span>Sopas</span></div>' : '') +
+                   filas(c.ensaladas) +
+                   (c.postres ? '<div class="r-fila"><b>' + c.postres + '</b><span>Postres</span></div>' : '');
+    if (extras) h += '<div class="r-sec">Sopas, ensaladas y postres</div>' + extras;
+    if (c.obs.length) h += '<div class="r-sec">Observaciones</div>' + c.obs.map(o => '<div class="r-obs">- ' + esc(o) + '</div>').join('');
+    return h;
+  }
+
+  function imprimirResumen(lista) {
+    if (!lista.length) return;
+    const t = $('ticket');
+    t.className = 'w' + ancho;
+    t.innerHTML = resumenHTML(lista);
+    $('ticket-page').textContent = `@media print{ @page{ size:${ancho}mm auto; margin:0 } }`;
+    document.body.classList.add('print-ticket');
+    window.print();
+  }
+
+  function renderReparto() {
+    const activos = repActivos();
+    const cards = $('rep-cards');
+    $('rep-mano').classList.toggle('hidden', !activos.length);
+
+    // Tarjetas fijas: FoodPro siempre (es quien recibe reparto) y Particulares si hay (ej: Cesfam).
+    // Europer u otras empresas no salen como tarjeta: se pueden juntar en "¿Solo algunos pedidos?".
+    const delGrupo = emp => activos.filter(p => (p.empresa || 'Particular') === emp);
+    const tarjetas = [{ emp:'FoodPro', titulo:'FoodPro', siempre:true }, { emp:'Particular', titulo:'Particulares', siempre:false }];
+    cards.innerHTML = '';
+    tarjetas.forEach(t => {
+      const lista = delGrupo(t.emp);
+      if (!lista.length && !t.siempre) return;
+      const card = document.createElement('div');
+      card.className = 'rep-card' + (lista.length ? '' : ' vacia');
+      card.innerHTML = '<div class="info"><h3></h3><p></p></div>' +
+        '<button type="button" class="btn btn-carbon">' + IC.print + 'Imprimir</button>';
+      card.querySelector('h3').textContent = t.titulo;
+      card.querySelector('p').textContent = lista.length
+        ? plural(nAlm(lista), 'almuerzo', 'almuerzos') + ' · ' + plural(lista.length, 'pedido', 'pedidos')
+        : 'Todavía no hay pedidos hoy';
+      const btn = card.querySelector('button');
+      btn.disabled = !lista.length;
+      btn.onclick = () => imprimirResumen(delGrupo(t.emp));
+      cards.appendChild(card);
+    });
+
+    if (!activos.length) { repSel.clear(); return; }
+
+    // Lista para elegir a mano
+    [...repSel].forEach(id => { if (!activos.some(p => p.id === id)) repSel.delete(id); });
+    const lst = $('rep-lista');
+    lst.innerHTML = '';
+    activos.forEach(p => {
+      const lab = document.createElement('label');
+      lab.className = 'rep-item';
+      const hora = new Date(p.fecha).toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit' });
+      lab.innerHTML = '<input type="checkbox"><span><b></b><br><span class="emp"></span></span><span class="q"></span>';
+      const inp = lab.querySelector('input');
+      inp.checked = repSel.has(p.id);
+      inp.onchange = () => { inp.checked ? repSel.add(p.id) : repSel.delete(p.id); botonMarcados(); };
+      lab.querySelector('b').textContent = p.cliente || 'Sin nombre';
+      lab.querySelector('.emp').textContent = (p.empresa || 'Particular') + ' · ' + hora;
+      lab.querySelector('.q').textContent = plural(Number(p.cantidad) || 1, 'almuerzo', 'almuerzos');
+      lst.appendChild(lab);
+    });
+    botonMarcados();
+  }
+
+  const repElegidos = () => repActivos().filter(p => repSel.has(p.id));
+  function botonMarcados() {
+    const el = repElegidos();
+    $('rep-imprimir').disabled = !el.length;
+    $('rep-imprimir-txt').textContent = el.length
+      ? 'Imprimir los marcados (' + plural(nAlm(el), 'almuerzo', 'almuerzos') + ')'
+      : 'Marca al menos un pedido';
+  }
+  $('rep-imprimir').onclick = () => imprimirResumen(repElegidos());
+
   let ancho = '80';
   try { ancho = localStorage.getItem('ticketAncho') === '58' ? '58' : '80'; } catch (e) {}
   $('ticket-ancho').value = ancho;
