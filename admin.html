@@ -85,7 +85,7 @@
   /* ---------- Resumen del día ---------- */
   .resumen h2{font-size:1.5rem; font-weight:800; margin-bottom:12px}
   .cocina-items{display:grid; gap:12px; grid-template-columns:repeat(2, 1fr)}
-  @media (min-width:900px){ .cocina-items{grid-template-columns:repeat(3, 1fr) 1.5fr} }
+  @media (min-width:900px){ .cocina-items{grid-template-columns:repeat(4, 1fr) 1.5fr} }
   .tile{background:var(--papel); border:2px solid var(--borde); border-radius:18px; padding:16px 18px; display:flex; flex-direction:column; gap:2px}
   .tile .t-lbl{display:flex; align-items:center; gap:10px; font-weight:800; color:var(--suave); font-size:1rem}
   .tile .t-lbl svg{width:24px; height:24px; color:var(--oliva)}
@@ -314,16 +314,17 @@
       </div>
 
       <div class="field">
-        <label for="m-postres">Postres</label>
+        <label for="m-postres">Postres que hay hoy</label>
+        <p class="help">Los clientes por internet <b>no eligen cuál postre</b>: solo marcan si quieren postre (sí o no) y se les da el que haya. Si dejas esto vacío, no aparece la opción de postre.</p>
         <textarea id="m-postres" placeholder="Flan&#10;Jalea"></textarea>
       </div>
 
       <div class="field especial-box">
         <label class="switch">
           <input type="checkbox" id="m-especial-act">
-          <span>Mostrar platos especiales y dietas (para Europer)</span>
+          <span>Mostrar platos “Solo autorizados” y dietas (para Europer)</span>
         </label>
-        <label class="lbl" for="m-especiales" style="font-size:1rem">Platos especiales de hoy</label>
+        <label class="lbl" for="m-especiales" style="font-size:1rem">Platos “Solo autorizados” de hoy</label>
         <p class="help">Uno por línea. Puedes poner el precio entre paréntesis.</p>
         <textarea id="m-especiales" placeholder="Bistec a la plancha c/ arroz ($7.500)&#10;Pechuga al jugo c/ puré&#10;Dieta blanda médica ($8.000)"></textarea>
       </div>
@@ -400,6 +401,7 @@
     plato:   I('<path d="M3 15h18"/><path d="M5 15a7 7 0 0 1 14 0"/><path d="M4 18h16"/>'),
     sopa:    I('<path d="M3 12h18a9 9 0 0 1-18 0z"/><path d="M8 8c0-1 1-1.5 1-2.5M12 8c0-1 1-1.5 1-2.5M16 8c0-1 1-1.5 1-2.5"/>'),
     hoja:    I('<path d="M5 19c0-8 6-14 14-14 0 8-6 14-14 14z"/><path d="M5 19l8-8"/>'),
+    postre:  I('<path d="M4 20h16"/><path d="M5 20v-6h14v6"/><path d="M5 14c2 1.5 4 1.5 7 0s5-1.5 7 0"/><path d="M12 10V7"/><circle cx="12" cy="5.5" r="1.2"/>'),
     plata:   I('<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9.5v5M18 9.5v5"/>'),
     x:       I('<path d="M6 6l12 12M18 6L6 18"/>')
   };
@@ -560,12 +562,13 @@
 
     if (!items.length) {
       cont.innerHTML = '<div class="vacio"><b>Todavía no llegan pedidos hoy</b>Cuando un cliente pida, aparecerá aquí solo.</div>';
-      $('summary-cocina').innerHTML = tile(IC.plato, 'Almuerzos', 0) + tile(IC.sopa, 'Sopas', 0) + tile(IC.hoja, 'Ensaladas', 0) + tile(IC.plata, 'Total a cobrar hoy', clp(0), 'dinero');
+      $('summary-cocina').innerHTML = tile(IC.plato, 'Almuerzos', 0) + tile(IC.sopa, 'Sopas', 0) + tile(IC.hoja, 'Ensaladas', 0) + tile(IC.postre, 'Postres', 0) + tile(IC.plata, 'Total a cobrar hoy', clp(0), 'dinero');
       return;
     }
 
     let sopasCount = 0;
     let ensaladasCount = 0;
+    let postresCount = 0;
     let almuerzosCount = 0;
     let totalDineroFacturar = 0;
 
@@ -583,6 +586,9 @@
         if (p.detalle && /ensaladas?: (?!no\b|sin ensalada)/i.test(p.detalle)) {
           ensaladasCount += c;
         }
+        if (p.detalle && /postres?: (?!no\b)/i.test(p.detalle)) {
+          postresCount += c;
+        }
       }
 
       const anulado = p.estado === 'anulado';
@@ -592,7 +598,7 @@
 
       const emp = (p.empresa || 'Particular').toLowerCase();
       const badgeCls = emp.includes('foodpro') ? 'badge-foodpro' : emp.includes('europer') ? 'badge-europer' : 'badge-particular';
-      const esEspecial = p.detalle && /\[ESPECIAL\]|plato especial/i.test(p.detalle);
+      const esEspecial = p.detalle && /\[SOLO AUTORIZADOS\]|\[ESPECIAL\]|plato especial/i.test(p.detalle);
 
       const estadoHTML = anulado
         ? `<span class="estado anulado">${IC.x}Pedido anulado</span>`
@@ -616,7 +622,7 @@
           </div>
           <div class="badges">
             <span class="badge ${badgeCls}">${esc(p.empresa || 'Particular')}</span>
-            ${esEspecial ? '<span class="badge badge-especial">Plato especial</span>' : ''}
+            ${esEspecial ? '<span class="badge badge-especial">Solo autorizados</span>' : ''}
           </div>
         </div>
         <ul class="pedido-body">${lineas}</ul>
@@ -625,8 +631,8 @@
           <span class="pedido-total">A cobrar <b>${clp(p.total)}</b></span>
         </div>
         <div class="acciones ${anulado ? 'solo' : ''}">
-          ${anulado ? '' : `<button type="button" class="btn btn-carbon" onclick="imprimirTicket('${esc(p.id)}')">${IC.print}Imprimir ticket</button>`}
-          <button type="button" class="btn ${anulado ? 'btn-recuperar' : 'btn-peligro'}" onclick="toggleAnular('${esc(p.id)}', '${esc(p.estado)}')">
+          ${anulado ? '' : `<button type="button" class="btn btn-carbon" data-accion="ticket" data-id="${esc(p.id)}">${IC.print}Imprimir ticket</button>`}
+          <button type="button" class="btn ${anulado ? 'btn-recuperar' : 'btn-peligro'}" data-accion="anular" data-id="${esc(p.id)}">
             ${anulado ? IC.undo + 'Recuperar pedido' : IC.trash + 'Anular pedido'}
           </button>
         </div>
@@ -638,6 +644,7 @@
       tile(IC.plato, 'Almuerzos', almuerzosCount) +
       tile(IC.sopa, 'Sopas', sopasCount) +
       tile(IC.hoja, 'Ensaladas', ensaladasCount) +
+      tile(IC.postre, 'Postres', postresCount) +
       tile(IC.plata, 'Total a cobrar hoy', clp(totalDineroFacturar), 'dinero');
   }
 
@@ -668,7 +675,22 @@
     document.body.classList.add('print-ticket');
     window.print();
   };
-  window.addEventListener('afterprint', () => document.body.classList.remove('print-ticket'));
+  // Volver al panel después de imprimir (con respaldo por si 'afterprint' no se dispara en la tablet)
+  const salirImpresion = () => document.body.classList.remove('print-ticket');
+  window.addEventListener('afterprint', salirImpresion);
+  window.addEventListener('focus', () => setTimeout(salirImpresion, 300));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(salirImpresion, 300); });
+
+  // Botones de cada pedido (sin onclick en el HTML: los datos del pedido nunca se ejecutan como código)
+  $('pedidos-lista').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-accion]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const p = pedidosHoy[id];
+    if (!p) return;
+    if (btn.dataset.accion === 'ticket') imprimirTicket(id);
+    if (btn.dataset.accion === 'anular') toggleAnular(id, p.estado);
+  });
 
   window.toggleAnular = (id, estadoActual) => {
     const nuevoEstado = estadoActual === 'anulado' ? 'confirmado' : 'anulado';

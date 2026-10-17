@@ -142,6 +142,17 @@
   .opt:has(input:checked){background:var(--crema-2); border-color:var(--accent)}
   .opt input:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 
+  .oculto{display:none !important}
+  /* Convenio FoodPro: ensalada o postre */
+  .fp-sub{margin:-6px 0 14px; color:var(--suave)}
+  .fp-sub b{color:var(--texto)}
+  .fp-opts{display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px}
+  .fp-opts .opt{margin:0; min-height:64px; justify-content:center; font-weight:700; font-size:1.1rem}
+  .fp-o{font-family:"Alegreya",Georgia,serif; font-style:italic; font-size:1.3rem; color:var(--suave)}
+  .opt.disabled{opacity:.45; cursor:not-allowed}
+  .opt.disabled input{cursor:not-allowed}
+  .fp-note{display:block; font-size:.8rem; font-weight:500; color:var(--suave)}
+  .fp-hint{margin:12px 0 0; font-size:.92rem; color:var(--suave)}
   #sec-ensaladas{display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); column-gap:8px}
   #sec-ensaladas h3{grid-column:1/-1}
   #sec-ensaladas .opt{margin:4px 0}
@@ -212,7 +223,7 @@
 
   /* Barra inferior móvil */
   .bar{
-    position:fixed; left:12px; right:12px; bottom:12px; z-index:40;
+    position:fixed; left:calc(12px + env(safe-area-inset-left)); right:calc(12px + env(safe-area-inset-right)); bottom:calc(12px + env(safe-area-inset-bottom)); z-index:40;
     display:flex; align-items:center; justify-content:space-between; gap:12px;
     background:var(--carbon); color:#fff; border-radius:16px; padding:10px 10px 10px 18px;
     box-shadow:0 14px 34px -12px rgba(42,36,30,.6);
@@ -227,7 +238,7 @@
   @media (min-width:960px){ .bar{display:none} }
 
   .toast{
-    position:fixed; left:50%; bottom:88px; transform:translate(-50%, 30px); opacity:0; z-index:50; pointer-events:none;
+    position:fixed; left:50%; bottom:calc(88px + env(safe-area-inset-bottom)); transform:translate(-50%, 30px); opacity:0; z-index:50; pointer-events:none;
     background:var(--papel); color:var(--texto); border:1px solid var(--borde); padding:12px 20px; border-radius:999px; font-weight:700;
     box-shadow:var(--shadow); transition:transform .4s var(--ease), opacity .3s var(--ease); max-width:calc(100% - 32px); text-align:center;
   }
@@ -353,7 +364,7 @@
     principales: P('<path d="M3 15h18"/><path d="M5 15a7 7 0 0 1 14 0"/><path d="M12 8V6.5"/><path d="M4 18h16"/>'),
     agregados:   P('<path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M9 7c0-1 1-1.5 1-2.5M13 7c0-1 1-1.5 1-2.5"/>'),
     ensaladas:   P('<path d="M5 19c0-8 6-14 14-14 0 8-6 14-14 14z"/><path d="M5 19l8-8"/>'),
-    postres:     P('<path d="M4 20h16"/><path d="M5 20v-6h14v6"/><path d="M5 14c2 1.5 4 1.5 7 0s5-1.5 7 0"/><path d="M12 10V7"/><circle cx="12" cy="5.5" r="1.2"/>'),
+    postre:      P('<path d="M4 20h16"/><path d="M5 20v-6h14v6"/><path d="M5 14c2 1.5 4 1.5 7 0s5-1.5 7 0"/><path d="M12 10V7"/><circle cx="12" cy="5.5" r="1.2"/>'),
     bebidas:     P('<path d="M7 7h10l-1.2 13H8.2z"/><path d="M12 7l2-4h3"/>'),
     sopa:        P('<path d="M3 12h18a9 9 0 0 1-18 0z"/><path d="M8 8c0-1 1-1.5 1-2.5M12 8c0-1 1-1.5 1-2.5M16 8c0-1 1-1.5 1-2.5"/>'),
     pan:         P('<path d="M4 15c0-5 3.6-9 8-9s8 4 8 9c0 1.7-1.3 3-3 3H7c-1.7 0-3-1.3-3-3z"/><path d="M9 10l1 3M12 9.5v3.5M15 10l-1 3"/>'),
@@ -383,11 +394,18 @@
   const empresaActual = () => empresaUrl;
 
   const PERFILES = {
-    FoodPro: { ocultar: ['pan', 'pebre'] },
+    FoodPro: { ocultar: ['pan', 'pebre', 'postre'], eleccion: true, ensaladasPermitidas: ['Surtida', 'Lechuga', 'Tomate', 'Zanahoria'] },
     Europer: { dieta: true }
   };
-  const DIETA_OTRO = 'Otro plato especial / Dieta médica';
+  const DIETA_OTRO = 'Otro plato / Dieta médica';
+  const MARCA_AUT = '⭐ [SOLO AUTORIZADOS]';
+  const esAutorizado = v => !!v && (v.includes(MARCA_AUT) || v.includes('⭐ [ESPECIAL]'));
   let dietaTexto = '';
+
+  // Convenio FoodPro: solo ensalada O postre (excluyente)
+  let eleccionFP = null; // 'Ensalada' | 'Postre' | null
+  const norm = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  const esFP = () => !!perfil().eleccion;
 
   const perfil = () => PERFILES[empresaActual()] || {};
 
@@ -397,15 +415,16 @@
     { key:'principales', title:'Platos Principales', label:'Plato principal', required:true },
     { key:'agregados', title:'Agregados', label:'Agregado' },
     { key:'ensaladas', title:'Ensaladas (Elige las que quieras)', label:'Ensaladas', multi:true },
-    { key:'postres', title:'Postres', label:'Postre' },
     { key:'bebidas', title:'Bebidas', label:'Bebida' }
   ];
 
   const CATS_ACOMP = [
     { key:'sopa', title:'Sopa', label:'Sopa', yesno:true, from:'entradas' },
     { key:'pan', title:'Pan', label:'Pan', yesno:true },
-    { key:'pebre', title:'Pebre', label:'Pebre', yesno:true }
+    { key:'pebre', title:'Pebre', label:'Pebre', yesno:true },
+    { key:'postre', title:'Postre', label:'Postre', yesno:true, necesita:'postres', nota:'Se entrega el postre que haya ese día.' }
   ];
+  const acompDisponible = c => !c.necesita || (data && (data[c.necesita] || []).length > 0);
 
   const LISTAS = ['principales', 'agregados', 'entradas', 'ensaladas', 'postres', 'bebidas', 'especiales'];
   const esVisible = k => !(perfil().ocultar || []).includes(k);
@@ -510,7 +529,11 @@
       h.lastChild.textContent = c.title;
       sec.appendChild(h);
 
-      const items = (data[c.key] || []).slice();
+      let items = (data[c.key] || []).slice();
+      if (c.key === 'ensaladas' && esFP()) {
+        const permitidas = perfil().ensaladasPermitidas.map(norm);
+        items = items.filter(n => permitidas.includes(norm(limpiarTextoOpcion(n))));
+      }
       const conDieta = c.key === 'principales' && perfil().dieta && data.especialActivo !== false;
       if (!items.length && !conDieta) return;
 
@@ -524,11 +547,11 @@
       if (conDieta) {
         const especialesHoy = data.especiales || [];
         especialesHoy.forEach(esp => {
-          const valEsp = '⭐ [ESPECIAL] ' + esp;
+          const valEsp = MARCA_AUT + ' ' + esp;
           sec.appendChild(opcion(c, valEsp, valEsp, prev[c.key] === valEsp));
         });
 
-        const valOtro = '⭐ [ESPECIAL] ' + DIETA_OTRO;
+        const valOtro = MARCA_AUT + ' ' + DIETA_OTRO;
         sec.appendChild(opcion(c, valOtro, valOtro, prev[c.key] === valOtro));
 
         const box = document.createElement('div');
@@ -536,14 +559,14 @@
         box.id = 'dieta-box';
         box.innerHTML = '<label class="lbl" for="o-dieta">Especificación de preparación o régimen médico (opcional/obligatorio)</label>' +
                         '<textarea id="o-dieta" maxlength="200" placeholder="Ej: sin sal, pechuga a la plancha, arroz blanco, sin aliños"></textarea>' +
-                        '<small>Preparación fuera de minuta o régimen médico especial.</small>';
+                        '<small>Preparación fuera de minuta o régimen médico.</small>';
         box.querySelector('textarea').value = dietaTexto;
         sec.appendChild(box);
       }
       cont.appendChild(sec);
     });
 
-    const acompVisibles = CATS_ACOMP.filter(c => esVisible(c.key));
+    const acompVisibles = CATS_ACOMP.filter(c => esVisible(c.key) && acompDisponible(c));
     if (acompVisibles.length) {
       const secAcomp = document.createElement('section');
       secAcomp.className = 'cat';
@@ -563,10 +586,10 @@
         block.appendChild(title);
 
         const hoy = c.from ? (data[c.from] || []) : [];
-        if (hoy.length) {
+        if (hoy.length || c.nota) {
           const sub = document.createElement('p');
           sub.className = 'acomp-sub';
-          sub.textContent = 'Hoy: ' + hoy.join(' / ');
+          sub.textContent = hoy.length ? 'Hoy: ' + hoy.join(' / ') : c.nota;
           block.appendChild(sub);
         }
 
@@ -581,6 +604,39 @@
       cont.appendChild(secAcomp);
     }
 
+    if (esFP()) {
+      const secEns = cont.querySelector('#sec-ensaladas');
+      const hayPostre = (data.postres || []).length > 0;
+      if (eleccionFP === 'Ensalada' && !secEns) eleccionFP = null;
+      if (eleccionFP === 'Postre' && !hayPostre) eleccionFP = null;
+      if (secEns || hayPostre) {
+        const sec = document.createElement('section');
+        sec.className = 'cat';
+        sec.id = 'sec-eleccion';
+        sec.innerHTML = '<h3><span class="emo" aria-hidden="true">' + icon('acomp') + '</span><span>Tu acompañamiento</span></h3>' +
+          '<p class="fp-sub">Convenio FoodPro: puedes elegir <b>ensalada o postre</b>, uno de los dos.</p>' +
+          '<div class="fp-opts" role="radiogroup" aria-label="Ensalada o postre"></div>' +
+          '<p class="fp-hint" id="fp-hint"></p>';
+        const opts = sec.querySelector('.fp-opts');
+        const fpOpcion = (valor, disponible, nota) => {
+          const lab = document.createElement('label');
+          lab.className = 'opt fp' + (disponible ? '' : ' disabled');
+          const inp = document.createElement('input');
+          inp.type = 'radio'; inp.name = 'fp-eleccion'; inp.value = valor; inp.disabled = !disponible;
+          if (disponible && eleccionFP === valor) { inp.checked = true; inp.dataset.was = '1'; }
+          const span = document.createElement('span');
+          span.textContent = valor;
+          if (!disponible) { const n = document.createElement('small'); n.className = 'fp-note'; n.textContent = nota; span.appendChild(n); }
+          lab.append(inp, span);
+          return lab;
+        };
+        const o = document.createElement('span'); o.className = 'fp-o'; o.textContent = 'ó';
+        opts.append(fpOpcion('Ensalada', !!secEns, 'No hay hoy'), o, fpOpcion('Postre', hayPostre, 'No hay hoy'));
+        cont.insertBefore(sec, secEns || cont.querySelector('#sec-acompanamientos') || null);
+      }
+      aplicarEleccionFP();
+    }
+
     if (!cont.children.length) {
       cont.innerHTML = '<div class="empty"><h3>Aún no está el menú de hoy</h3><p>La cocina todavía no publica los platos. Vuelve a revisar en un rato.</p></div>';
     }
@@ -593,7 +649,7 @@
     const box = document.getElementById('dieta-box');
     if (!box) return;
     const el = document.querySelector('input[name="principales"]:checked');
-    const esEspecial = el && el.value.includes('⭐ [ESPECIAL]');
+    const esEspecial = el && esAutorizado(el.value);
     box.classList.toggle('on', !!esEspecial);
   }
 
@@ -609,6 +665,10 @@
         inp.dataset.was = '1';
       }
     }
+    if (inp.name === 'fp-eleccion') {
+      eleccionFP = inp.checked ? inp.value : null;
+      aplicarEleccionFP();
+    }
     const catSection = inp.closest('.cat');
     if (catSection) catSection.classList.remove('need');
     updateDieta();
@@ -619,20 +679,47 @@
     if (e.target.id === 'o-dieta') { dietaTexto = e.target.value; e.target.closest('.cat').classList.remove('need'); updateSummary(); }
   });
 
+  function aplicarEleccionFP() {
+    if (!esFP()) return;
+    const secEns = document.getElementById('sec-ensaladas');
+    const mostrar = (sec, on) => {
+      if (!sec) return;
+      sec.classList.toggle('oculto', !on);
+      if (!on) sec.querySelectorAll('input:checked').forEach(x => { x.checked = false; x.dataset.was = ''; });
+    };
+    mostrar(secEns, eleccionFP === 'Ensalada');
+    const hint = document.getElementById('fp-hint');
+    if (hint) hint.textContent = eleccionFP === 'Ensalada' ? 'Ahora elige tu ensalada más abajo.'
+      : eleccionFP === 'Postre' ? 'Te daremos el postre que haya ese día.'
+      : 'Toca una opción para ver la lista.';
+  }
+
   function picks() {
-    return [...CATS_STANDALONE, ...CATS_ACOMP].filter(c => esVisible(c.key)).map(c => {
+    const lista = [...CATS_STANDALONE, ...CATS_ACOMP].filter(c => esVisible(c.key) && acompDisponible(c)).filter(c => {
+      if (!esFP()) return true;
+      if (c.key === 'ensaladas') return eleccionFP === 'Ensalada';
+      return true;
+    });
+    const res = lista.map(c => {
       if (c.multi) {
         const els = Array.from(document.querySelectorAll('input[name="' + c.key + '"]:checked')).map(x => x.value);
         return { ...c, value: els.length ? els.join(' + ') : 'Sin ensalada' };
       }
       const el = document.querySelector('input[name="' + c.key + '"]:checked');
       let value = el ? el.value : null;
-      if (c.key === 'principales' && value && value.includes('⭐ [ESPECIAL]')) {
+      if (c.key === 'principales' && esAutorizado(value)) {
         const txt = dietaTexto.trim();
         value = txt ? value + ' (' + txt + ')' : value;
       }
       return { ...c, value };
     });
+    if (esFP()) {
+      const pos = res.findIndex(r => r.key === 'ensaladas' || r.key === 'sopa');
+      const item = { key:'fp', label:'Convenio FoodPro', value: eleccionFP ? 'elige ' + eleccionFP : 'Sin ensalada ni postre' };
+      res.splice(pos === -1 ? res.length : pos, 0, item);
+      if (eleccionFP === 'Postre') res.push({ key:'postre', label:'Postre', value:'Sí' });
+    }
+    return res;
   }
 
   function qty() {
@@ -728,6 +815,13 @@
       sec.scrollIntoView({ behavior:'smooth', block:'start' });
       $('o-dieta').focus();
       toast('Describe tu preparación o dieta médica');
+      return;
+    }
+    if (esFP() && eleccionFP === 'Ensalada' && !document.querySelector('input[name="ensaladas"]:checked')) {
+      const sec = $('sec-ensaladas');
+      sec.classList.add('need');
+      sec.scrollIntoView({ behavior:'smooth', block:'start' });
+      toast('Marca qué ensalada quieres, o elige Postre');
       return;
     }
     if (((data.principales || []).length || perfil().dieta) && !principal.value) {
