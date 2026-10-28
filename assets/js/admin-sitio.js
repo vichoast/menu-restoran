@@ -2,7 +2,7 @@
 // Va en un archivo aparte para no tocar el código del menú, pedidos y reparto.
 import { getApps, getApp, initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, onValue, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, onValue, set, update, remove, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { firebaseConfig } from "./firebase.js";
 import { TEXTOS_BASE, esc, soloNumeros } from "./contenido.js";
@@ -52,6 +52,17 @@ let iniciado = false;
 onAuthStateChanged(auth, user => {
   if (!user || iniciado) return;
   iniciado = true;
+  // Cuentas que no son de la caja (por ejemplo RRHH): avisar en vez de mostrar errores al guardar
+  get(ref(db, "admins/" + user.uid)).then(s => {
+    if (s.val() === true) return;
+    NUEVAS.forEach(id => {
+      const p = $(id), h = p.querySelector("h2");
+      const a = document.createElement("div");
+      a.className = "aviso-caja";
+      a.textContent = "Esta cuenta solo puede ver pedidos. Para editar la página, entra con la cuenta de la caja.";
+      h.insertAdjacentElement("afterend", a);
+    });
+  }).catch(() => {});
   iniciarTextos();
   iniciarFotos();
   iniciarEventos();

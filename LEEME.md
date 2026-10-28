@@ -42,3 +42,22 @@ eventos/solicitudes/{id}         { tipo, nombre, telefono, correo, fecha, franja
 3. En GitHub, ve a la configuración del repo, luego a Pages y luego a Custom domain. Escribe `restaurantsanjose.cl` y activa "Enforce HTTPS".
 4. Al hacerlo, GitHub redirige solo los links viejos (`vichoast.github.io/menu-restoran/...`), así que los links de convenio de FoodPro y Europer siguen funcionando.
 5. En Firebase, ve a Authentication, luego a Configuración y luego a Dominios autorizados, y agrega `restaurantsanjose.cl`.
+
+## Apps en el celular (PWA)
+
+- **San José** (clientes): se instala desde cualquier página con el botón "Instalar la app" del pie (Android) o con Compartir → "Agregar a pantalla de inicio" (iPhone). Usa `manifest.webmanifest`.
+- **SJ Panel** (familia): se instala desde `admin.html` con el botón "Instalar el panel". Usa `panel.webmanifest` y abre directo el panel con la sesión guardada.
+- `sw.js` hace que se abran sin internet (con la última versión guardada) y muestra los avisos.
+
+## Avisos de pedidos y eventos
+
+1. En el panel, en el recuadro "Este celular", toca **Activar avisos**. En iPhone, primero instala el panel en la pantalla de inicio y ábrelo desde ese ícono (iOS 16.4 o más nuevo).
+2. Los celulares quedan guardados en `avisos/{uid}`. La caja (`admins`) recibe pedidos y consultas de eventos; RRHH (`rrhh`) recibe solo pedidos.
+3. El envío lo hace `functions/index.js` (Cloud Functions). **Necesita el plan Blaze.** Para publicarlo, con Node instalado:
+   ```
+   npm install -g firebase-tools
+   firebase login
+   cd functions && npm install && cd ..
+   firebase deploy --only functions
+   ```
+   No cambia nada de los pedidos: solo lee el pedido nuevo y manda el aviso.

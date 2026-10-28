@@ -83,3 +83,12 @@
 @media (max-width:420px){.sol .contacto,.sol .acciones-sol{grid-template-columns:1fr}}
 .ev-admin .cal-vacio{height:50px}
 .ev-admin>div{min-width:0}
+
+/* ---------- Este celular (instalar panel + avisos) ---------- */
+.este-cel{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px;background:#fff;border:2px solid var(--borde);border-left:10px solid var(--mostaza);border-radius:18px;padding:14px 18px;margin-bottom:24px}
+.este-cel-txt{flex:1 1 260px;min-width:0}
+.este-cel-txt b{font-size:1.05rem}
+.este-cel-txt p{color:var(--suave);font-size:.95rem}
+.este-cel-botones{display:flex;flex-wrap:wrap;gap:8px}
+.este-cel-botones .btn{width:auto;min-height:56px;padding:10px 18px;font-size:1rem}
+@media (max-width:560px){.este-cel-botones{width:100%}.este-cel-botones .btn{flex:1 1 140px}}

@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#FAF4E6">
+<link rel="manifest" href="panel.webmanifest">
+<link rel="apple-touch-icon" href="assets/img/panel-apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SJ Panel">
 <title>Panel de Administración · Menú del Día</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -293,6 +298,20 @@
   <div class="franja" aria-hidden="true"></div>
 
   <div class="wrap">
+    <!-- Este celular: instalar el panel y avisos (nuevo) -->
+    <section class="este-cel" id="este-cel" aria-label="Este celular">
+      <div class="este-cel-txt">
+        <b>Este celular</b>
+        <p id="avisos-estado">Cargando…</p>
+        <p class="help hidden" id="avisos-ayuda"></p>
+      </div>
+      <div class="este-cel-botones">
+        <button type="button" class="btn btn-borde hidden" id="btn-instalar-panel">Instalar el panel</button>
+        <button type="button" class="btn btn-borde hidden" id="btn-avisos-probar">Probar aviso</button>
+        <button type="button" class="btn btn-rojo hidden" id="btn-avisos">Activar avisos</button>
+      </div>
+    </section>
+
     <!-- Resumen -->
     <section class="resumen cocina-box" aria-labelledby="res-tit">
       <h2 id="res-tit">Resumen de hoy</h2>
@@ -1068,5 +1087,6 @@
   };
 </script>
 <script type="module" src="assets/js/admin-sitio.js"></script>
+<script type="module" src="assets/js/avisos.js"></script>
 </body>
 </html>

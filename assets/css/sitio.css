@@ -195,4 +195,8 @@ select.entrada{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www
 .pie .legal{grid-column:1/-1;border-top:1px solid var(--tinta-700);padding-top:16px;font-size:14px;color:var(--arena-400);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .pie .legal a{color:var(--arena-400)}
 
+.pie .instalar{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.pie .instalar.oculto{display:none}
+.pie .instalar-ios{color:var(--crema-100);font-size:15px}
+.pie .instalar-ios.oculto{display:none}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important;scroll-behavior:auto !important}}

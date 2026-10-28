@@ -9,6 +9,11 @@
 <link rel="canonical" href="https://restaurantsanjose.cl/pedido.html">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="San José">
+<script src="assets/js/pwa.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,700;0,800;1,400&family=Alegreya+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -107,6 +112,10 @@
       <ul id="pie-contacto" style="margin-top:10px"></ul>
     </div>
     <div class="redes" id="pie-redes"></div>
+    <div class="instalar oculto">
+      <button type="button" class="btn btn--acento" data-instalar>Instalar la app</button>
+      <p class="instalar-ios oculto">En iPhone: toca Compartir y luego “Agregar a pantalla de inicio”.</p>
+    </div>
     <div class="legal"><span>© <span id="pie-anio">2026</span> Restaurant San José</span><a href="admin.html" rel="nofollow">Panel del local</a></div>
   </div>
 </footer>
