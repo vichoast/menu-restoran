@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#9B2C25">
+<title>Instala la app · Restaurant San José</title>
+<meta name="description" content="Instala la app de Restaurant San José en tu celular: menú del día, pedidos por WhatsApp y eventos.">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="San José">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,700;0,800;1,400&family=Alegreya+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/sitio.css">
+<style>
+  body{background:var(--rojo-500)}
+  .caja{max-width:440px;margin:0 auto;padding:40px 16px 32px;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;gap:20px}
+  .tarjeta{text-align:center;padding:28px 20px}
+  .tarjeta img{width:110px;height:auto;margin:0 auto 8px}
+  .tarjeta h1{font-size:32px;font-weight:800;letter-spacing:var(--ls-tight)}
+  .tarjeta .frase{font:italic 400 20px/1.35 var(--font-display);color:var(--rojo-500);margin:6px 0 18px}
+  .tarjeta ul{list-style:none;padding:0;margin:0 0 22px;display:grid;gap:6px;color:var(--text-body)}
+  .pasos{margin-top:16px;text-align:left;background:var(--mostaza-50);border:1px solid var(--mostaza-200);border-radius:var(--radius-md);padding:14px 16px;font-size:16px}
+  .pasos ol{margin:6px 0 0 20px;padding:0;display:grid;gap:6px}
+  .listo{display:none}
+  body.instalada .listo{display:block}
+  body.instalada .instalar,body.instalada .pasos{display:none}
+  .seguir{color:var(--crema-100);text-align:center;font-size:15px}
+  .seguir a{color:var(--crema-0);font-weight:700}
+</style>
+</head>
+<body>
+<main class="caja">
+  <div class="tarjeta">
+    <img src="assets/img/logo.png" alt="Restaurant San José, Sabor de Casa" width="110" height="137">
+    <h1>Restaurant San José</h1>
+    <p class="frase">Sabor de casa, en tu celular.</p>
+    <ul>
+      <li>El menú del día, apenas sale de la olla</li>
+      <li>Pide tu almuerzo por WhatsApp</li>
+      <li>Revisa fechas para tu evento</li>
+    </ul>
+    <div class="instalar">
+      <button type="button" class="btn btn--acento btn--lg btn--ancho" data-instalar>Instalar la app</button>
+    </div>
+    <div class="pasos" id="pasos"></div>
+    <div class="listo">
+      <p style="font-weight:700;color:var(--oliva-600)">Ya tienes la app instalada.</p>
+      <a class="btn btn--primario btn--lg btn--ancho" href="./" style="margin-top:12px">Abrir el menú de hoy</a>
+    </div>
+  </div>
+  <p class="seguir">¿Prefieres no instalar nada? <a href="./">Ver la página</a></p>
+</main>
+<script>
+  // Pasos a mano según el celular (por si el navegador no muestra la ventana de instalar)
+  (function () {
+    var ua = navigator.userAgent;
+    var ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    var android = /android/i.test(ua);
+    var enSafari = ios && /safari/i.test(ua) && !/crios|fxios|edgios|instagram|fban|fbav|line|whatsapp/i.test(ua);
+    var html;
+    if (ios && !enSafari) html = "<b>En iPhone</b><ol><li>Abre este link en <b>Safari</b> (toca ⋯ o el ícono de brújula → “Abrir en Safari”).</li><li>Toca <b>Compartir</b> (el cuadrado con flecha).</li><li>Elige <b>“Agregar a pantalla de inicio”</b>.</li></ol>";
+    else if (ios) html = "<b>En iPhone</b><ol><li>Toca <b>Compartir</b> (el cuadrado con flecha, abajo).</li><li>Elige <b>“Agregar a pantalla de inicio”</b>.</li><li>Toca <b>Agregar</b>.</li></ol>";
+    else if (android) html = "<b>Si no aparece la ventana de instalar</b><ol><li>Abre el menú de Chrome (los tres puntos ⋮).</li><li>Toca <b>“Instalar app”</b> o <b>“Agregar a pantalla principal”</b>.</li></ol>";
+    else html = "<b>En el computador</b><ol><li>Haz clic en el ícono de instalar al final de la barra de direcciones,</li><li>o en el menú ⋮ → <b>“Instalar Restaurant San José”</b>.</li></ol>";
+    document.getElementById("pasos").innerHTML = html;
+    // En iPhone no existe botón de instalar: solo se hace desde Compartir, así que mostramos solo los pasos
+    if (ios) document.querySelector(".instalar").style.display = "none";
+    if (matchMedia("(display-mode: standalone)").matches || navigator.standalone === true) document.body.classList.add("instalada");
+    addEventListener("appinstalled", function () { document.body.classList.add("instalada"); });
+  })();
+</script>
+<script src="assets/js/pwa.js" defer></script>
+</body>
+</html>
