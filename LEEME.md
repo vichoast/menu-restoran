@@ -61,3 +61,18 @@ eventos/solicitudes/{id}         { tipo, nombre, telefono, correo, fecha, franja
    firebase deploy --only functions
    ```
    No cambia nada de los pedidos: solo lee el pedido nuevo y manda el aviso.
+
+## Seguridad y revisión de pedidos
+
+- **Fotos (Storage):** solo las cuentas de la caja pueden subir, cambiar o borrar fotos. Sus UID están en `storage.rules`; si se agrega una cuenta de administración nueva, hay que sumarla en `admins` (base de datos) **y** en `storage.rules`.
+- **Registro de cuentas:** desactivado en Firebase → Authentication → Configuración → Acciones del usuario. Las cuentas se crean solo desde la consola.
+- **Revisión de pedidos:** la función `revisarPedidoNuevo` recalcula cada pedido nuevo con el menú del momento (mismas reglas de precio que `pedido.html`) y deja el resultado en `pedidosRevision/{id}`. Si algo no calza (total distinto, plato que no está en el menú, plato “solo autorizados” fuera de Europer), el panel muestra **“Revisar este pedido”** y llega un aviso a la caja. No cambia ni borra el pedido.
+- **Empresas válidas:** las reglas solo aceptan `Particular`, `FoodPro` y `Europer`. Si se suma un convenio nuevo, hay que agregarlo en `pedido.html` (EMPRESAS), en `database.rules.json` y en `functions/index.js` (EMPRESAS_OK).
+- **WhatsApp:** si alguien guarda un celular de 9 dígitos (9XXXXXXXX), el panel y el sitio le agregan el 56 solos.
+
+### Publicar las funciones (avisos y revisión)
+Desde Cloud Shell (shell.cloud.google.com, proyecto menurestaurant-235f7):
+```
+git clone --depth 1 https://github.com/vichoast/menu-restoran && cd menu-restoran/functions && npm install && cd ..
+npx -y firebase-tools@13 deploy --only functions --project menurestaurant-235f7
+```
