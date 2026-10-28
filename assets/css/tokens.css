@@ -1,0 +1,55 @@
+:root{
+--font-display:'Alegreya',Georgia,serif;
+--font-body:'Alegreya Sans','Trebuchet MS',sans-serif;
+--font-script:'Alegreya',Georgia,serif; /* usar en itálica para acentos tipo "Sabor de Casa" */
+
+--fs-display:64px;--fs-h1:48px;--fs-h2:36px;--fs-h3:28px;--fs-h4:22px;--fs-lead:20px;--fs-body:17px;--fs-small:15px;--fs-caption:13px;--fs-overline:13px;
+--lh-tight:1.1; /* @kind font */
+--lh-snug:1.25; /* @kind font */
+--lh-body:1.55; /* @kind font */
+
+--fw-regular:400; /* @kind font */
+--fw-medium:500; /* @kind font */
+--fw-bold:700; /* @kind font */
+--fw-black:800; /* @kind font */
+
+--ls-overline:0.14em;--ls-tight:-0.01em;
+}
+:root{
+/* Mostaza */
+--mostaza-50:#FBF4E0;--mostaza-100:#F6E6B8;--mostaza-200:#EFD27E;--mostaza-300:#E6BC47;--mostaza-400:#DDA92A;--mostaza-500:#D09A1A;--mostaza-600:#B07F12;--mostaza-700:#8A620F;--mostaza-800:#634610;
+/* Rojo colonial */
+--rojo-50:#F8E9E6;--rojo-100:#EFCBC5;--rojo-200:#DE968B;--rojo-300:#C8635A;--rojo-400:#B13F37;--rojo-500:#9B2C25;--rojo-600:#82231E;--rojo-700:#661B18;--rojo-800:#4A1412;
+/* Verde oliva */
+--oliva-50:#F1F1E2;--oliva-100:#DFDFBF;--oliva-200:#C2C38E;--oliva-300:#A2A463;--oliva-400:#838645;--oliva-500:#6B6E33;--oliva-600:#565929;--oliva-700:#424420;--oliva-800:#2F3118;
+/* Neutrales cálidos (crema → tinta) */
+--crema-0:#FFFCF5;--crema-50:#FAF4E6;--crema-100:#F3EAD5;--crema-200:#E6D9BD;--arena-300:#CDBC9C;--arena-400:#A8977A;--arena-500:#7E705B;--tinta-600:#5A4F41;--tinta-700:#3D352C;--tinta-800:#2A241E;--tinta-900:#1A1612;
+
+/* Semánticos */
+--color-primary:var(--rojo-500);--color-primary-hover:var(--rojo-600);--color-primary-press:var(--rojo-700);--color-on-primary:var(--crema-0);
+--color-accent:var(--mostaza-400);--color-accent-hover:var(--mostaza-500);--color-on-accent:var(--tinta-900);
+--color-secondary:var(--oliva-500);--color-secondary-hover:var(--oliva-600);--color-on-secondary:var(--crema-0);
+
+--surface-page:var(--crema-50);--surface-card:var(--crema-0);--surface-sunken:var(--crema-100);--surface-inverse:var(--tinta-800);--surface-brand:var(--rojo-500);--surface-accent:var(--mostaza-50);
+
+--text-strong:var(--tinta-900);--text-body:var(--tinta-700);--text-muted:var(--arena-500);--text-inverse:var(--crema-50);--text-link:var(--rojo-500);--text-link-hover:var(--rojo-700);
+
+--border-subtle:var(--crema-200);--border-default:var(--arena-300);--border-strong:var(--tinta-700);--focus-ring:var(--mostaza-400);
+
+--status-success:var(--oliva-500);--status-success-bg:var(--oliva-50);--status-warning:var(--mostaza-700);--status-warning-bg:var(--mostaza-50);--status-danger:var(--rojo-500);--status-danger-bg:var(--rojo-50);--status-info:var(--tinta-600);--status-info-bg:var(--crema-100);
+}
+:root{
+--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;--space-6:32px;--space-7:48px;--space-8:64px;--space-9:96px;
+--radius-sm:4px;--radius-md:8px;--radius-lg:14px;--radius-pill:999px;
+--border-w:1px;--border-w-strong:2px;
+--shadow-sm:0 1px 2px rgba(42,36,30,.08);
+--shadow-md:0 2px 4px rgba(42,36,30,.06),0 6px 16px rgba(42,36,30,.08);
+--shadow-lg:0 4px 8px rgba(42,36,30,.08),0 16px 40px rgba(42,36,30,.14);
+--shadow-focus:0 0 0 3px rgba(221,169,42,.55);
+--ease-out:cubic-bezier(.2,.7,.3,1); /* @kind other */
+--dur-fast:120ms; /* @kind other */
+--dur-base:200ms; /* @kind other */
+--dur-slow:320ms; /* @kind other */
+
+--container-max:1160px;
+}

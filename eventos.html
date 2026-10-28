@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#9B2C25">
+<title>Eventos · Restaurant San José</title>
+<meta name="description" content="Celebra en Restaurant San José: matrimonios, bingos, cumpleaños y actividades de la comuna. Revisa las fechas libres y envíanos tu consulta.">
+<link rel="canonical" href="https://restaurantsanjose.cl/eventos.html">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,700;0,800;1,400&family=Alegreya+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/sitio.css">
+<link rel="stylesheet" href="assets/css/calendario.css">
+<style>
+  .ev-cab{background:var(--crema-50);padding:36px 0 16px}
+  @media (min-width:860px){.ev-cab{padding:56px 0 24px}}
+  .ev-cab h1{font-size:clamp(36px,9vw,var(--fs-h1));font-weight:800;letter-spacing:var(--ls-tight)}
+  .ev-grid{display:grid;gap:24px;padding-top:8px;padding-bottom:48px}
+  @media (min-width:960px){.ev-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:start;padding-bottom:72px}}
+  .ev-grid h2{font-size:var(--fs-h3);margin-bottom:4px}
+  .ev-grid .sub{color:var(--text-muted);font-size:15px;margin-bottom:16px}
+  .listo{text-align:left}
+  .listo .circulo{width:56px;height:56px;border-radius:50%;background:var(--oliva-500);color:var(--crema-0);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px}
+  .listo .circulo svg{width:28px;height:28px}
+  .listo h2{margin-bottom:8px}
+  .error-form{color:var(--status-danger);font-weight:700;min-height:1.4em}
+  .fotos-ev{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:24px}
+  @media (min-width:700px){.fotos-ev{grid-template-columns:repeat(4,1fr)}}
+  .fotos-ev figure{margin:0;aspect-ratio:4/3;border-radius:var(--radius-md);overflow:hidden;background:var(--crema-100)}
+  .fotos-ev button{all:unset;display:block;width:100%;height:100%;cursor:zoom-in}
+  .fotos-ev img{width:100%;height:100%;object-fit:cover}
+</style>
+</head>
+<body>
+
+<header class="cabecera">
+  <div class="contenedor">
+    <a href="./"><img src="assets/img/logo.png" alt="Restaurant San José, Sabor de Casa" width="45" height="56"></a>
+    <span class="lema">Sabor de casa</span>
+  </div>
+</header>
+<nav class="nav-principal" aria-label="Principal">
+  <div class="contenedor">
+    <a class="logo-nav" href="./"><img src="assets/img/logo.png" alt="Restaurant San José, Sabor de Casa" width="50" height="62"></a>
+    <ul class="nav-links">
+      <li><a href="./">Inicio</a></li>
+      <li><a href="carta.html">La carta</a></li>
+      <li><a href="eventos.html" aria-current="page">Eventos</a></li>
+      <li><a class="nav-pedido" href="pedido.html">Pedido</a></li>
+    </ul>
+  </div>
+  <div class="franja" aria-hidden="true"></div>
+</nav>
+
+
+
+<main>
+  <section class="ev-cab">
+    <div class="contenedor">
+      <p class="overline">Centro de eventos</p>
+      <h1 id="t-eventosTitulo">Celebra con nosotros</h1>
+      <p class="bajada" id="t-eventosIntro"></p>
+      <div class="fotos-ev oculto" id="fotos-ev"></div>
+    </div>
+  </section>
+
+  <div class="contenedor ev-grid">
+    <!-- Calendario de disponibilidad -->
+    <section class="tarjeta" aria-labelledby="cal-tit">
+      <h2 id="cal-tit">Fechas disponibles</h2>
+      <p class="sub">Toca un día para ver si está libre de día o de noche.</p>
+      <div class="cal" id="cal">
+        <div class="cal-cab">
+          <button type="button" class="cal-flecha" id="cal-ant" aria-label="Mes anterior"></button>
+          <h3 class="cal-mes" id="cal-mes" aria-live="polite"></h3>
+          <button type="button" class="cal-flecha" id="cal-sig" aria-label="Mes siguiente"></button>
+        </div>
+        <div class="cal-semana" aria-hidden="true"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+        <div class="cal-dias" id="cal-dias" role="grid"></div>
+        <div class="cal-leyenda">
+          <span><i class="ley ley--libre"></i>Libre</span>
+          <span><i class="ley ley--parcial"></i>Libre una parte</span>
+          <span><i class="ley ley--ocupado"></i>Ocupado</span>
+        </div>
+      </div>
+      <div class="cal-detalle" id="cal-detalle" aria-live="polite">
+        <p style="color:var(--text-muted)">Elige un día en el calendario.</p>
+      </div>
+    </section>
+
+    <!-- Formulario de consulta -->
+    <section class="tarjeta" id="consulta" aria-labelledby="form-tit">
+      <div id="form-caja">
+        <h2 id="form-tit">Cuéntanos tu evento</h2>
+        <p class="sub">Te respondemos para conversar fecha, horario, menú y precio. Todavía no es una reserva.</p>
+        <form class="grilla-form" id="form-ev" novalidate>
+          <fieldset class="campo">
+            <legend>¿Qué quieres celebrar?</legend>
+            <div class="chips" id="tipos">
+              <label class="chip"><input type="radio" name="tipo" value="Matrimonio"><span>Matrimonio</span></label>
+              <label class="chip"><input type="radio" name="tipo" value="Bingo"><span>Bingo</span></label>
+              <label class="chip"><input type="radio" name="tipo" value="Cumpleaños"><span>Cumpleaños</span></label>
+              <label class="chip"><input type="radio" name="tipo" value="Completada"><span>Completada</span></label>
+              <label class="chip"><input type="radio" name="tipo" value="Actividad de la comuna"><span>Actividad de la comuna</span></label>
+              <label class="chip"><input type="radio" name="tipo" value="Otro"><span>Otro</span></label>
+            </div>
+          </fieldset>
+          <div class="dos">
+            <label class="campo"><span>Fecha que te gustaría</span>
+              <input class="entrada" type="date" id="f-fecha">
+              <small id="f-fecha-nota">Si aún no la tienes, déjala en blanco.</small>
+            </label>
+            <label class="campo"><span>Invitados (aprox.)</span>
+              <input class="entrada" type="number" id="f-invitados" inputmode="numeric" min="1" max="2000" placeholder="Ej: 80">
+            </label>
+          </div>
+          <fieldset class="campo">
+            <legend>Horario</legend>
+            <div class="chips" id="f-franjas"></div>
+            <small>El horario lo afinamos juntos.</small>
+          </fieldset>
+          <label class="campo"><span>Tu nombre</span>
+            <input class="entrada" id="f-nombre" autocomplete="name" maxlength="80" required>
+          </label>
+          <div class="dos">
+            <label class="campo"><span>WhatsApp o teléfono</span>
+              <input class="entrada" id="f-telefono" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="+56 9 1234 5678" required>
+            </label>
+            <label class="campo"><span>Correo (opcional)</span>
+              <input class="entrada" id="f-correo" type="email" autocomplete="email" maxlength="120">
+            </label>
+          </div>
+          <label class="campo"><span>Cuéntanos más (opcional)</span>
+            <textarea class="entrada" id="f-mensaje" maxlength="1000" placeholder="Ej: matrimonio civil con almuerzo para 80 personas, nos gustaría cazuela de entrada."></textarea>
+          </label>
+          <label class="trampa" aria-hidden="true">Sitio web <input id="f-web" tabindex="-1" autocomplete="off"></label>
+          <p class="error-form" id="f-error" role="alert"></p>
+          <button class="btn btn--primario btn--lg btn--ancho" type="submit" id="f-enviar">Enviar consulta</button>
+        </form>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="pie">
+  <div class="contenedor">
+    <img src="assets/img/logo-white.png" alt="Restaurant San José" width="71" height="88">
+    <div>
+      <p class="lema">Sabor de casa.</p>
+      <ul id="pie-contacto" style="margin-top:10px"></ul>
+    </div>
+    <div class="redes" id="pie-redes"></div>
+    <div class="legal"><span>© <span id="pie-anio">2026</span> Restaurant San José</span><a href="admin.html" rel="nofollow">Panel del local</a></div>
+  </div>
+</footer>
+
+<script type="module" src="assets/js/eventos.js"></script>
+</body>
+</html>

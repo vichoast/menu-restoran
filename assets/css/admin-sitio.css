@@ -1,0 +1,85 @@
+/* Pestañas nuevas del panel: Textos, Fotos, Eventos y Solicitudes.
+   Usa las mismas clases grandes del panel (.panel, .field, .btn) */
+.nav .cuenta{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 8px;border-radius:13px;background:var(--mostaza);color:var(--carbon);font-size:.8rem;font-weight:800}
+.nav button[aria-selected="true"] .cuenta{background:#fff;color:var(--rojo)}
+.nav .cuenta:empty{display:none}
+.nav-sep{grid-column:1/-1;font-weight:800;color:var(--suave);font-size:.9rem;letter-spacing:.12em;text-transform:uppercase;margin:6px 0 -4px}
+.aviso-caja{background:var(--pendiente);border:2px solid var(--pendiente-borde);border-radius:14px;padding:14px 16px;font-weight:700;margin-bottom:18px}
+.ver-pagina{display:inline-flex;align-items:center;gap:8px;font-weight:800;color:var(--rojo)}
+
+/* ---------- Fotos ---------- */
+.grupo-fotos{border-top:2px dashed var(--borde);padding-top:22px;margin-top:22px}
+.grupo-fotos:first-of-type{border-top:0;margin-top:0;padding-top:0}
+.grupo-fotos h3{font-size:1.4rem;font-weight:800}
+.grupo-fotos .help{margin:2px 0 14px}
+.fotos-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));margin-bottom:14px}
+.foto-item{background:#fff;border:2px solid var(--borde);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.foto-item img{width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--crema)}
+.foto-item .cuerpo{padding:10px;display:grid;gap:8px}
+.foto-item input[type=text]{padding:10px 12px;font-size:.9rem;border-radius:10px}
+.foto-item .botones{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.foto-item .botones .btn{min-height:48px;padding:6px;font-size:.8rem;border-radius:10px;gap:4px}
+.foto-item .botones .btn svg{width:20px;height:20px}
+.foto-item.subiendo{opacity:.55}
+.subir{position:relative;overflow:hidden;width:auto;display:inline-flex}
+.subir input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.progreso{font-weight:800;color:var(--suave);margin-top:8px;min-height:1.4em}
+.sin-fotos{background:#fff;border:2px dashed var(--borde);border-radius:14px;padding:18px;color:var(--suave);grid-column:1/-1}
+
+/* ---------- Eventos (calendario del panel) ---------- */
+.ev-admin{display:grid;gap:24px}
+@media (min-width:1000px){.ev-admin{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:start}}
+.ev-admin .cal-dia{font-size:.9rem;height:50px;background:#fff;border-color:var(--borde);color:var(--carbon);text-decoration:none}
+.ev-admin .cal-dia.parcial{background:linear-gradient(135deg,#fff 0 50%,#F6E6B8 50% 100%)}
+.ev-admin .cal-dia.ocupado{background:#EFCBC5;color:#661B18;border-color:#DE968B}
+.ev-admin .cal-dia.reservado-total{background:#9B2C25;color:#fff;border-color:#9B2C25}
+.ev-admin .cal-dia.pasado{opacity:.45;background:#fff}
+.ev-admin .cal-dia.con-nota::before{content:"";position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--oliva)}
+.ev-admin .cal-mes{font-size:1.4rem}
+.ley--res{background:#9B2C25;border:1.5px solid #9B2C25}
+.ley--blo{background:#EFCBC5;border:1.5px solid #DE968B}
+.dia-editor{background:#fff;border:2px solid var(--borde);border-radius:18px;padding:18px}
+.dia-editor h3{font-size:1.4rem;font-weight:800;margin-bottom:12px}
+.franja-fila{padding:12px 0;border-top:2px solid var(--crema)}
+.franja-fila:first-of-type{border-top:0;padding-top:0}
+.franja-fila .nom{font-weight:800;margin-bottom:8px}
+.franja-fila .nom small{font-weight:500;color:var(--suave)}
+.segmento{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.segmento button{min-height:56px;padding:4px 2px;border-radius:12px;border:2.5px solid var(--borde);background:#fff;font-weight:800;font-size:.8rem;min-width:0;overflow-wrap:anywhere;cursor:pointer;color:var(--suave)}
+.segmento button[aria-pressed="true"][data-e="libre"]{background:var(--verde-claro);border-color:var(--verde);color:var(--verde-2)}
+.segmento button[aria-pressed="true"][data-e="bloqueado"]{background:#EFCBC5;border-color:#B13F37;color:#661B18}
+.segmento button[aria-pressed="true"][data-e="reservado"]{background:var(--rojo);border-color:var(--rojo);color:#fff}
+.todo-dia{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:4px 0 14px}
+.todo-dia .btn{min-height:52px;font-size:.8rem;padding:4px 2px;min-width:0}
+.franjas-edit .fila{display:grid;grid-template-columns:1fr 1fr 64px;gap:10px;margin-bottom:10px;align-items:center}
+@media (max-width:560px){.franjas-edit .fila{grid-template-columns:1fr 64px}.franjas-edit .fila .det{grid-column:1;grid-row:2}.franjas-edit .fila .btn-quitar{grid-column:2;grid-row:1/span 2;min-height:100%}}
+.proximos{list-style:none;display:grid;gap:8px;margin-top:10px}
+.proximos li{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;background:#fff;border:2px solid var(--borde);border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+.proximos li span{font-weight:500;color:var(--suave)}
+
+/* ---------- Solicitudes ---------- */
+.filtros{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.filtros button{min-height:52px;padding:8px 16px;border-radius:999px;border:2.5px solid var(--borde);background:#fff;font-weight:800;font-size:.95rem;cursor:pointer;color:var(--suave)}
+.filtros button[aria-pressed="true"]{background:var(--carbon);border-color:var(--carbon);color:#fff}
+#sol-lista{display:grid;gap:16px}
+@media (min-width:1000px){#sol-lista{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.sol{background:#fff;border:2.5px solid var(--borde);border-left:10px solid var(--mostaza);border-radius:18px;padding:18px;display:grid;gap:10px;min-width:0;overflow-wrap:anywhere}
+.sol.contactada{border-left-color:var(--oliva)}
+.sol.confirmada{border-left-color:var(--rojo)}
+.sol.descartada{border-left-color:#A79C8F;opacity:.75}
+.sol .cab{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.sol .quien{font-family:"Alegreya",Georgia,serif;font-weight:800;font-size:1.5rem;line-height:1.15}
+.sol .tipo{display:inline-block;font-size:.85rem;font-weight:800;padding:5px 12px;border-radius:10px;background:var(--crema-2);border:2px solid var(--borde)}
+.sol .est{font-size:.85rem;font-weight:800;padding:5px 12px;border-radius:999px;background:var(--pendiente);color:#7A5508}
+.sol .est.contactada{background:#DFDFBF;color:#424420}
+.sol .est.confirmada{background:var(--rojo);color:#fff}
+.sol .est.descartada{background:#E6E0D8;color:#4F463D}
+.sol .datos-sol{list-style:none;display:grid;gap:4px;padding:12px 14px;background:var(--crema-2);border-radius:12px;font-size:1rem}
+.sol .msg{padding:12px 14px;border:2px solid var(--borde);border-radius:12px;font-size:1rem;white-space:pre-wrap}
+.sol .cuando{font-size:.85rem;color:var(--suave)}
+.sol .contacto{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sol .acciones-sol{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sol .btn{min-height:58px;font-size:.95rem;padding:10px;gap:8px}
+@media (max-width:420px){.sol .contacto,.sol .acciones-sol{grid-template-columns:1fr}}
+.ev-admin .cal-vacio{height:50px}
+.ev-admin>div{min-width:0}

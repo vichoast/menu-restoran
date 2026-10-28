@@ -1,0 +1,29 @@
+/* Calendario de disponibilidad (sitio público y panel) */
+.cal{user-select:none}
+.cal-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.cal-mes{font:800 22px/1.2 var(--font-display);color:var(--text-strong);text-transform:capitalize;text-align:center;flex:1}
+.cal-flecha{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--border-default);background:var(--surface-card);color:var(--text-strong);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.cal-flecha:hover:not(:disabled){background:var(--crema-100)}
+.cal-flecha:disabled{opacity:.35;cursor:not-allowed}
+.cal-semana,.cal-dias{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal-semana span{text-align:center;font:700 13px/1 var(--font-body);color:var(--text-muted);padding:6px 0;letter-spacing:.06em}
+.cal-dia{position:relative;height:44px;min-width:0;border-radius:var(--radius-md);border:1.5px solid transparent;background:var(--oliva-50);color:var(--oliva-800);font:700 16px/1 var(--font-body);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:border-color var(--dur-fast),transform var(--dur-fast)}
+.cal-dia:hover:not(:disabled){border-color:var(--oliva-500)}
+.cal-dia:active:not(:disabled){transform:translateY(1px)}
+.cal-dia.parcial{background:linear-gradient(135deg,var(--oliva-50) 0 50%,var(--mostaza-100) 50% 100%);color:var(--tinta-800)}
+.cal-dia.ocupado{background:var(--crema-200);color:var(--arena-500);text-decoration:line-through}
+.cal-dia.pasado,.cal-dia:disabled{background:transparent;color:var(--arena-300);cursor:default;text-decoration:none}
+.cal-dia.hoy::after{content:"";position:absolute;bottom:5px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--rojo-500)}
+.cal-dia[aria-pressed="true"]{border-color:var(--rojo-500);box-shadow:0 0 0 2px var(--rojo-500)}
+.cal-vacio{height:44px}
+.cal-leyenda{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:14px;font-size:14px;color:var(--text-body)}
+.cal-leyenda span{display:inline-flex;align-items:center;gap:6px}
+.ley{display:inline-block;width:16px;height:16px;border-radius:4px}
+.ley--libre{background:var(--oliva-50);border:1.5px solid var(--oliva-300)}
+.ley--parcial{background:linear-gradient(135deg,var(--oliva-50) 0 50%,var(--mostaza-100) 50% 100%);border:1.5px solid var(--mostaza-300)}
+.ley--ocupado{background:var(--crema-200);border:1.5px solid var(--arena-300)}
+.cal-detalle{margin-top:18px;padding-top:16px;border-top:1px dashed var(--border-default)}
+.cal-detalle h4{font-size:20px;margin-bottom:10px;text-transform:none}
+.franja-estado{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--border-subtle)}
+.franja-estado:first-of-type{border-top:0}
+.franja-estado small{display:block;color:var(--text-muted);font-size:14px}

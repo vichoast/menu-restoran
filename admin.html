@@ -247,6 +247,9 @@
     #ticket .r-obs { font-size: 1em; padding-left: 3mm; text-indent: -3mm; }
   }
 </style>
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/calendario.css">
+<link rel="stylesheet" href="assets/css/admin-sitio.css">
 </head>
 <body>
 
@@ -313,6 +316,23 @@
       <button type="button" role="tab" aria-selected="false" data-tab="tab-reparto">
         <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>
         Resumen para reparto
+      </button>
+      <p class="nav-sep">Página web</p>
+      <button type="button" role="tab" aria-selected="false" data-tab="tab-textos">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        Textos de la página
+      </button>
+      <button type="button" role="tab" aria-selected="false" data-tab="tab-fotos">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 8"/></svg>
+        Fotos
+      </button>
+      <button type="button" role="tab" aria-selected="false" data-tab="tab-eventos">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        Calendario de eventos
+      </button>
+      <button type="button" role="tab" aria-selected="false" data-tab="tab-solicitudes">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg>
+        <span>Solicitudes de eventos <span class="cuenta" id="sol-cuenta"></span></span>
       </button>
     </nav>
 
@@ -444,6 +464,85 @@
         <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
         Guardar datos del local
       </button>
+    </section>
+
+    <!-- ===== TEXTOS DE LA PÁGINA (nuevo) ===== -->
+    <section class="panel hidden" id="tab-textos" role="tabpanel">
+      <h2>Textos de la página</h2>
+      <p class="intro">Lo que escribas aquí aparece en la página del restaurante. Si dejas un recuadro vacío, se usa el texto gris de ejemplo. <a class="ver-pagina" href="./" target="_blank" rel="noopener">Ver la página</a></p>
+      <div id="textos-campos"></div>
+      <div class="guardar-bar">
+        <button class="btn btn-verde" id="btn-guardar-textos" type="button">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+          Guardar textos
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== FOTOS (nuevo) ===== -->
+    <section class="panel hidden" id="tab-fotos" role="tabpanel">
+      <h2>Fotos</h2>
+      <p class="intro">Sube fotos desde el celular o el computador. Se achican solas para que la página cargue rápido.</p>
+      <div class="aviso-caja hidden" id="fotos-aviso"></div>
+      <div id="fotos-grupos"></div>
+    </section>
+
+    <!-- ===== CALENDARIO DE EVENTOS (nuevo) ===== -->
+    <section class="panel hidden" id="tab-eventos" role="tabpanel">
+      <h2>Calendario de eventos</h2>
+      <p class="intro">Toca un día y marca cada horario como <b>libre</b>, <b>bloqueado</b> (no se arrienda) o <b>reservado</b>. Los clientes solo ven si está libre u ocupado.</p>
+      <div class="ev-admin">
+        <div>
+          <div class="cal" id="acal">
+            <div class="cal-cab">
+              <button type="button" class="cal-flecha" id="acal-ant" aria-label="Mes anterior"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+              <h3 class="cal-mes" id="acal-mes"></h3>
+              <button type="button" class="cal-flecha" id="acal-sig" aria-label="Mes siguiente"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+            </div>
+            <div class="cal-semana" aria-hidden="true"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+            <div class="cal-dias" id="acal-dias"></div>
+            <div class="cal-leyenda">
+              <span><i class="ley" style="background:#fff;border:1.5px solid var(--borde)"></i>Libre</span>
+              <span><i class="ley ley--parcial"></i>Una parte ocupada</span>
+              <span><i class="ley ley--blo"></i>Todo ocupado</span>
+              <span><i class="ley ley--res"></i>Todo reservado</span>
+              <span><i class="ley" style="background:var(--oliva);border-radius:50%;width:9px;height:9px"></i>Tiene nota</span>
+            </div>
+          </div>
+          <h3 style="font-size:1.25rem;font-weight:800;margin-top:22px">Próximos días ocupados</h3>
+          <ul class="proximos" id="proximos"></ul>
+        </div>
+        <div>
+          <div class="dia-editor" id="dia-editor"><p class="help">Toca un día del calendario para editarlo.</p></div>
+          <details class="rep-mano" style="margin-top:18px">
+            <summary>Horarios que se arriendan <span>(día, noche…)</span></summary>
+            <p class="help" style="margin:4px 0 14px">Son los bloques que se ven en el calendario. El detalle es opcional, por ejemplo “desde las 19:00”.</p>
+            <div class="franjas-edit" id="franjas-edit"></div>
+            <button type="button" class="btn btn-borde btn-agregar" id="btn-franja-agregar">
+              <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              Agregar horario
+            </button>
+            <button type="button" class="btn btn-verde" id="btn-franjas-guardar" style="margin-top:14px">
+              <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+              Guardar horarios
+            </button>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SOLICITUDES DE EVENTOS (nuevo) ===== -->
+    <section class="panel hidden" id="tab-solicitudes" role="tabpanel">
+      <h2>Solicitudes de eventos</h2>
+      <p class="intro">Lo que la gente envía desde la página de Eventos. Llegan solas, no hace falta recargar.</p>
+      <div class="filtros" id="sol-filtros">
+        <button type="button" data-f="nueva" aria-pressed="true">Nuevas</button>
+        <button type="button" data-f="contactada" aria-pressed="false">En conversación</button>
+        <button type="button" data-f="confirmada" aria-pressed="false">Confirmadas</button>
+        <button type="button" data-f="descartada" aria-pressed="false">Descartadas</button>
+        <button type="button" data-f="todas" aria-pressed="false">Todas</button>
+      </div>
+      <div id="sol-lista"><p class="vacio">Cargando solicitudes…</p></div>
     </section>
   </div>
 </div>
@@ -968,5 +1067,6 @@
       .then(() => aviso(nuevoEstado === 'anulado' ? 'Pedido anulado.' : 'Pedido recuperado.'));
   };
 </script>
+<script type="module" src="assets/js/admin-sitio.js"></script>
 </body>
 </html>

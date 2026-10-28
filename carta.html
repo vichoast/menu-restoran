@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#9B2C25">
+<title>La carta · Restaurant San José</title>
+<meta name="description" content="El menú del día de Restaurant San José: platos de fondo, agregados, sopa, ensaladas y postre. Comida casera, hecha hoy.">
+<link rel="canonical" href="https://restaurantsanjose.cl/carta.html">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,700;0,800;1,400&family=Alegreya+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/sitio.css">
+<style>
+  .carta-cab{background:var(--crema-50);padding:36px 0 8px}
+  @media (min-width:860px){.carta-cab{padding:56px 0 8px}}
+  .carta-cab h1{font-size:clamp(36px,9vw,var(--fs-h1));font-weight:800;letter-spacing:var(--ls-tight)}
+  .carta-cab .fecha{font:italic 400 22px/1.3 var(--font-display);color:var(--rojo-500);margin-top:4px}
+  .carta-grid{display:grid;gap:20px;padding-top:24px;padding-bottom:48px}
+  @media (min-width:860px){.carta-grid{grid-template-columns:minmax(0,1fr) 340px;gap:32px;align-items:start;padding-bottom:72px}}
+  .cats{display:grid;gap:16px}
+  @media (min-width:700px){.cats{grid-template-columns:1fr 1fr}.cats .cat--ancha{grid-column:1/-1}}
+  .cat h2{display:flex;align-items:center;gap:12px;font-size:var(--fs-h4);margin-bottom:10px}
+  .cat h2 .circ{width:40px;height:40px;border-radius:50%;background:var(--oliva-500);color:var(--crema-0);display:inline-flex;align-items:center;justify-content:center;flex:none}
+  .cat ul{list-style:none;margin:0;padding:0}
+  .cat li{padding:10px 0;border-top:1px dashed var(--border-subtle);font:700 19px/1.3 var(--font-display);color:var(--text-strong)}
+  .cat li:first-child{border-top:0}
+  .cat .nota{font-size:15px;color:var(--text-muted);margin-top:6px}
+  .cat--fondo{border-top:4px solid var(--rojo-500)}
+  .chips-lista{display:flex;flex-wrap:wrap;gap:8px}
+  .chips-lista span{padding:6px 14px;border-radius:var(--radius-pill);background:var(--oliva-50);color:var(--oliva-700);font-weight:700;font-size:16px}
+  .resumen-precio{position:sticky;top:76px}
+  .resumen-precio .precio{font:800 48px/1 var(--font-display);color:var(--rojo-500);margin:10px 0 4px}
+  .resumen-precio .incluye{color:var(--text-muted)}
+  .resumen-precio ul{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:6px;font-size:16px}
+  .resumen-precio li{display:flex;gap:8px;align-items:center}
+  .resumen-precio li svg{color:var(--oliva-500);width:18px;height:18px}
+  .sk{height:150px;border-radius:var(--radius-lg);background:linear-gradient(90deg,var(--crema-100) 0%,var(--crema-50) 50%,var(--crema-100) 100%) 0 0/200% 100%;animation:brillo 1.4s linear infinite}
+  @keyframes brillo{to{background-position:-200% 0}}
+  .vacio{background:var(--surface-card);border:1.5px dashed var(--border-default);border-radius:var(--radius-lg);padding:32px 20px;color:var(--text-muted)}
+  .vacio h2{color:var(--text-strong);font-size:var(--fs-h4);margin-bottom:6px}
+</style>
+</head>
+<body>
+
+<header class="cabecera">
+  <div class="contenedor">
+    <a href="./"><img src="assets/img/logo.png" alt="Restaurant San José, Sabor de Casa" width="45" height="56"></a>
+    <span class="lema">Sabor de casa</span>
+  </div>
+</header>
+<nav class="nav-principal" aria-label="Principal">
+  <div class="contenedor">
+    <a class="logo-nav" href="./"><img src="assets/img/logo.png" alt="Restaurant San José, Sabor de Casa" width="50" height="62"></a>
+    <ul class="nav-links">
+      <li><a href="./">Inicio</a></li>
+      <li><a href="carta.html" aria-current="page">La carta</a></li>
+      <li><a href="eventos.html">Eventos</a></li>
+      <li><a class="nav-pedido" href="pedido.html">Pedido</a></li>
+    </ul>
+  </div>
+  <div class="franja" aria-hidden="true"></div>
+</nav>
+
+
+
+<main>
+  <section class="carta-cab">
+    <div class="contenedor">
+      <p class="overline">Hoy en la olla</p>
+      <h1>Menú del día</h1>
+      <p class="fecha" id="fecha"></p>
+      <p class="bajada">Lo cocinamos cada mañana. Si algo se acaba, vuelve mañana: así es la comida de casa.</p>
+    </div>
+  </section>
+
+  <div class="contenedor carta-grid">
+    <div class="cats" id="cats" aria-live="polite">
+      <div class="sk cat--ancha"></div><div class="sk"></div><div class="sk"></div>
+    </div>
+    <aside class="tarjeta resumen-precio" id="resumen" aria-labelledby="r-tit">
+      <span class="badge badge--mostaza">Menú completo</span>
+      <p class="precio" id="precio"></p>
+      <p class="incluye" id="incluye">Plato de fondo + agregado a elección</p>
+      <p style="margin-top:16px;font-weight:700;color:var(--text-strong);font-size:15px">Hoy tenemos</p>
+      <ul id="incluye-lista" style="margin-top:6px"></ul>
+      <a class="btn btn--acento btn--lg btn--ancho" href="pedido.html" style="margin-top:22px" id="r-tit">Armar mi pedido</a>
+      <p style="font-size:14px;color:var(--text-muted);margin-top:10px;text-align:center">Lo envías por WhatsApp, sin pagos en línea.</p>
+    </aside>
+  </div>
+</main>
+
+<footer class="pie">
+  <div class="contenedor">
+    <img src="assets/img/logo-white.png" alt="Restaurant San José" width="71" height="88">
+    <div>
+      <p class="lema">Sabor de casa.</p>
+      <ul id="pie-contacto" style="margin-top:10px"></ul>
+    </div>
+    <div class="redes" id="pie-redes"></div>
+    <div class="legal"><span>© <span id="pie-anio">2026</span> Restaurant San José</span><a href="admin.html" rel="nofollow">Panel del local</a></div>
+  </div>
+</footer>
+
+<script type="module">
+  import { $, ICONOS, esc, clp, fechaLarga, escuchar, iniciarPie } from "./assets/js/contenido.js";
+  iniciarPie();
+
+  const P = d => '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + d + '</svg>';
+  const IC = {
+    principales: P('<path d="M3 15h18"/><path d="M5 15a7 7 0 0 1 14 0"/><path d="M12 8V6.5"/><path d="M4 18h16"/>'),
+    agregados: P('<path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M9 7c0-1 1-1.5 1-2.5M13 7c0-1 1-1.5 1-2.5"/>'),
+    entradas: P('<path d="M3 12h18a9 9 0 0 1-18 0z"/><path d="M8 8c0-1 1-1.5 1-2.5M12 8c0-1 1-1.5 1-2.5M16 8c0-1 1-1.5 1-2.5"/>'),
+    ensaladas: P('<path d="M5 19c0-8 6-14 14-14 0 8-6 14-14 14z"/><path d="M5 19l8-8"/>'),
+    postres: P('<path d="M4 20h16"/><path d="M5 20v-6h14v6"/><path d="M5 14c2 1.5 4 1.5 7 0s5-1.5 7 0"/><path d="M12 10V7"/><circle cx="12" cy="5.5" r="1.2"/>'),
+    bebidas: P('<path d="M7 7h10l-1.2 13H8.2z"/><path d="M12 7l2-4h3"/>')
+  };
+
+  // Mismas reglas de lectura que la página de pedido (sin cambiar datos)
+  const lista = v => Array.isArray(v) ? v.filter(Boolean).map(String)
+    : (v && typeof v === "object" ? Object.keys(v).sort((a, b) => a - b).map(k => v[k]).filter(Boolean).map(String) : []);
+  const limpiar = s => s.replace(/\s*\(\$\d+[\d.]*\)/gi, "").trim();
+
+  const CATS = [
+    { k: "principales", t: "Platos de fondo", ancha: true, clase: "cat--fondo" },
+    { k: "agregados", t: "Agregados", nota: "Eliges uno para acompañar tu plato." },
+    { k: "entradas", t: "Sopa del día" },
+    { k: "ensaladas", t: "Ensaladas", chips: true, nota: "La surtida la arma la cocina con lo del día." },
+    { k: "postres", t: "Postre", nota: "Te damos el postre que haya ese día." },
+    { k: "bebidas", t: "Bebidas", chips: true }
+  ];
+
+  $("fecha").textContent = fechaLarga(Date.now());
+
+  escuchar("menu", m => {
+    const cont = $("cats");
+    if (!m) {
+      cont.innerHTML = '<div class="vacio cat--ancha"><h2>No pudimos cargar la carta</h2><p>Revisa tu conexión y vuelve a abrir la página.</p></div>';
+      return;
+    }
+    $("precio").textContent = m.precio ? clp(m.precio) : "";
+    if (m.incluye) $("incluye").textContent = m.incluye;
+
+    let html = "";
+    const tiene = [];
+    CATS.forEach(c => {
+      const items = lista(m[c.k]).map(limpiar);
+      if (!items.length) return;
+      tiene.push(c.t);
+      html += `<section class="tarjeta cat ${c.ancha ? "cat--ancha" : ""} ${c.clase || ""}">
+        <h2><span class="circ">${IC[c.k]}</span>${esc(c.t)}</h2>
+        ${c.chips ? '<div class="chips-lista">' + items.map(i => "<span>" + esc(i) + "</span>").join("") + "</div>"
+                  : "<ul>" + items.map(i => "<li>" + esc(i) + "</li>").join("") + "</ul>"}
+        ${c.nota ? '<p class="nota">' + esc(c.nota) + "</p>" : ""}
+      </section>`;
+    });
+    cont.innerHTML = html || '<div class="vacio cat--ancha"><h2>Aún no está el menú de hoy</h2><p>La cocina todavía no publica los platos. Vuelve a revisar en un rato.</p></div>';
+    $("incluye-lista").innerHTML = tiene.map(t => "<li>" + ICONOS.check + "<span>" + esc(t) + "</span></li>").join("");
+  });
+</script>
+</body>
+</html>

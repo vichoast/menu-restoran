@@ -1,0 +1,13 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Fotos de la página: cualquiera las ve, solo el panel (con login) las sube o borra
+    match /fotos/{todo=**} {
+      allow read: if true;
+      allow delete: if request.auth != null;
+      allow create, update: if request.auth != null
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+  }
+}

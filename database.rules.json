@@ -1,0 +1,44 @@
+{
+  "rules": {
+    "menu": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "pedidos": {
+      ".read": "auth != null",
+      ".indexOn": ["fecha"],
+      "$id": {
+        ".write": "auth != null || (!data.exists() && newData.hasChildren(['cliente', 'fecha']))"
+      }
+    },
+    "sitio": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "eventos": {
+      "franjas": { ".read": true, ".write": "auth != null" },
+      "disponibilidad": { ".read": true, ".write": "auth != null" },
+      "notas": { ".read": "auth != null", ".write": "auth != null" },
+      "solicitudes": {
+        ".read": "auth != null",
+        "$id": {
+          ".write": "auth != null || (!data.exists() && newData.child('estado').val() === 'nueva')",
+          ".validate": "newData.hasChildren(['nombre', 'telefono', 'tipo', 'estado', 'creado'])",
+          "nombre": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80" },
+          "telefono": { ".validate": "newData.isString() && newData.val().length <= 20" },
+          "correo": { ".validate": "newData.isString() && newData.val().length <= 120" },
+          "tipo": { ".validate": "newData.isString() && newData.val().length <= 40" },
+          "fecha": { ".validate": "newData.isString() && newData.val().length <= 10" },
+          "franja": { ".validate": "newData.isString() && newData.val().length <= 40" },
+          "franjaNombre": { ".validate": "newData.isString() && newData.val().length <= 40" },
+          "invitados": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 2000" },
+          "mensaje": { ".validate": "newData.isString() && newData.val().length <= 1000" },
+          "estado": { ".validate": "newData.val() === 'nueva' || newData.val() === 'contactada' || newData.val() === 'confirmada' || newData.val() === 'descartada'" },
+          "creado": { ".validate": "newData.isNumber() && newData.val() <= now + 60000" },
+          "actualizado": { ".validate": "newData.isNumber()" },
+          "$otro": { ".validate": false }
+        }
+      }
+    }
+  }
+}

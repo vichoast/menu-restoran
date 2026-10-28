@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /admin.html
+Disallow: /reporte.html
+Sitemap: https://restaurantsanjose.cl/sitemap.xml
