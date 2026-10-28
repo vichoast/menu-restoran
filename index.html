@@ -160,12 +160,12 @@
       <button type="button" class="btn btn--acento" data-instalar>Instalar la app</button>
       <p class="instalar-ios oculto">En iPhone: toca Compartir y luego “Agregar a pantalla de inicio”.</p>
     </div>
-    <div class="legal"><span>© <span id="pie-anio">2026</span> Restaurant San José</span><a href="admin.html" rel="nofollow">Panel del local</a></div>
+    <div class="legal"><span>© <span id="pie-anio">2026</span> Restaurant San José</span></div>
   </div>
 </footer>
 
 <script type="module">
-  import { $, ICONOS, esc, clp, fechaLarga, conTextos, escuchar, fotosDe, pintarGaleria, iniciarPie, enlaceWhatsApp, soloNumeros } from "./assets/js/contenido.js";
+  import { $, ICONOS, esc, clp, fechaLarga, conTextos, escuchar, fotosDe, pintarGaleria, iniciarPie, enlaceWhatsApp, numeroWsp } from "./assets/js/contenido.js";
 
   document.querySelectorAll("[data-icono]").forEach(el => el.innerHTML = ICONOS[el.dataset.icono] || "");
   iniciarPie();
@@ -179,11 +179,12 @@
     if (!textos) return;
     ["heroTitulo", "heroFrase", "nosotrosTitulo", "galeriaTitulo", "eventosTitulo", "eventosIntro"].forEach(k => { const el = $("t-" + k); if (el) el.textContent = textos[k]; });
     $("t-nosotros").innerHTML = parrafos(textos.nosotros);
-    $("d-direccion").textContent = textos.direccion || "Pregúntanos por WhatsApp cómo llegar.";
+    const direccion = textos.direccion || info.direccion || "";
+    $("d-direccion").textContent = direccion || "Pregúntanos por WhatsApp cómo llegar.";
     $("d-llegar").textContent = textos.comoLlegar || "";
     const mapa = $("mapa");
-    if (textos.direccion) {
-      const q = encodeURIComponent(textos.direccion);
+    if (direccion) {
+      const q = encodeURIComponent(direccion + ", Chile");
       if (mapa.dataset.q !== q) {
         mapa.dataset.q = q;
         mapa.innerHTML = '<iframe title="Mapa de cómo llegar" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=' + q + '&output=embed"></iframe>';
@@ -196,7 +197,7 @@
   function pintarContacto() {
     const t = textos || {};
     const filas = [];
-    if (info.whatsapp) filas.push(`<p><a href="${enlaceWhatsApp(info.whatsapp)}" target="_blank" rel="noopener">WhatsApp +${esc(soloNumeros(info.whatsapp))}</a></p>`);
+    if (info.whatsapp) filas.push(`<p><a href="${enlaceWhatsApp(info.whatsapp)}" target="_blank" rel="noopener">WhatsApp +${esc(numeroWsp(info.whatsapp))}</a></p>`);
     if (t.telefono) filas.push(`<p><a href="tel:${esc(t.telefono.replace(/\s/g, ""))}">${esc(t.telefono)}</a></p>`);
     if (t.correo) filas.push(`<p><a href="mailto:${esc(t.correo)}">${esc(t.correo)}</a></p>`);
     $("d-contacto").innerHTML = filas.join("") || "<p>Escríbenos por WhatsApp.</p>";
@@ -251,7 +252,7 @@
 
   conTextos(t => { textos = t; pintarTextos(); });
   escuchar("sitio/fotos", v => { fotos = v || {}; pintarFotos(); });
-  escuchar("menu", v => { menu = v; info = (v && v.info) || {}; pintarHero(); pintarContacto(); });
+  escuchar("menu", v => { menu = v; info = (v && v.info) || {}; pintarHero(); pintarTextos(); pintarContacto(); });
   pintarFotos();
 </script>
 </body>

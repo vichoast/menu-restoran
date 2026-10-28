@@ -26,6 +26,8 @@ export const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 export const fechaLarga = d => cap(new Date(d).toLocaleDateString("es-CL", { weekday: "long", day: "numeric", month: "long" }));
 export const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 export const soloNumeros = v => String(v || "").replace(/\D/g, "");
+// Número de WhatsApp en formato internacional chileno: si viene con 9 dígitos y parte con 9 (celular), se le agrega el 56
+export const numeroWsp = v => { const n = soloNumeros(v); return n.length === 9 && n[0] === "9" ? "56" + n : n; };
 
 // Íconos de línea (trazos tipo Lucide, 2px)
 const P = d => '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + d + "</svg>";
@@ -68,7 +70,7 @@ export function fotosDe(todas, seccion) {
 }
 
 export const enlaceWhatsApp = (numero, texto) =>
-  "https://wa.me/" + soloNumeros(numero) + (texto ? "?text=" + encodeURIComponent(texto) : "");
+  "https://wa.me/" + numeroWsp(numero) + (texto ? "?text=" + encodeURIComponent(texto) : "");
 
 export const enlaceInstagram = v => {
   const s = String(v || "").trim();
@@ -88,8 +90,9 @@ export function iniciarPie() {
     const lista = $("pie-contacto");
     if (!lista) return;
     const filas = [];
-    if (textos.direccion) filas.push(`<li>${esc(textos.direccion)}</li>`);
-    if (info.whatsapp) filas.push(`<li><a href="${enlaceWhatsApp(info.whatsapp)}" target="_blank" rel="noopener">WhatsApp +${esc(soloNumeros(info.whatsapp))}</a></li>`);
+    const dir = textos.direccion || info.direccion;
+    if (dir) filas.push(`<li>${esc(dir)}</li>`);
+    if (info.whatsapp) filas.push(`<li><a href="${enlaceWhatsApp(info.whatsapp)}" target="_blank" rel="noopener">WhatsApp +${esc(numeroWsp(info.whatsapp))}</a></li>`);
     if (textos.telefono) filas.push(`<li><a href="tel:${esc(textos.telefono.replace(/\s/g, ""))}">${esc(textos.telefono)}</a></li>`);
     if (textos.correo) filas.push(`<li><a href="mailto:${esc(textos.correo)}">${esc(textos.correo)}</a></li>`);
     lista.innerHTML = filas.join("") || "<li>Restaurant San José</li>";

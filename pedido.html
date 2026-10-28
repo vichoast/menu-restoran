@@ -116,7 +116,7 @@
       <button type="button" class="btn btn--acento" data-instalar>Instalar la app</button>
       <p class="instalar-ios oculto">En iPhone: toca Compartir y luego “Agregar a pantalla de inicio”.</p>
     </div>
-    <div class="legal"><span>© <span id="pie-anio">2026</span> Restaurant San José</span><a href="admin.html" rel="nofollow">Panel del local</a></div>
+    <div class="legal"><span>© <span id="pie-anio">2026</span> Restaurant San José</span></div>
   </div>
 </footer>
 
@@ -651,7 +651,8 @@
       toast('Elige tu plato principal');
       return;
     }
-    const num = String(data.info.whatsapp || '').replace(/\D/g, '');
+    let num = String(data.info.whatsapp || '').replace(/\D/g, '');
+    if (num.length === 9 && num[0] === '9') num = '56' + num; // celular chileno sin el 56
     if (!num) { toast('Por ahora no es posible pedir por WhatsApp'); return; }
 
     const nombre = $('o-nombre').value.trim() || 'Anónimo / Sin nombre';

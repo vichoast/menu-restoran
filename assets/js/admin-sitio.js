@@ -40,6 +40,16 @@ function aviso(texto) {
 }
 const fallo = (que, e) => { console.error(e); alert("No se pudo " + que + ".\n\nDetalle: " + (e && e.message ? e.message : e)); };
 
+// ---------------- Datos del local: WhatsApp siempre con 56 ----------------
+// Se ejecuta antes del guardado original (fase de captura) y solo corrige el recuadro.
+document.addEventListener("click", e => {
+  if (!e.target.closest("#btn-guardar-info")) return;
+  const inp = $("i-whatsapp");
+  if (!inp) return;
+  const n = soloNumeros(inp.value);
+  if (n.length === 9 && n[0] === "9") inp.value = "56" + n;
+}, true);
+
 // ---------------- Navegación de las pestañas nuevas ----------------
 // El panel original esconde sus 4 secciones al tocar cualquier botón nuevo;
 // aquí solo mostramos/escondemos las 4 secciones nuevas.
@@ -52,6 +62,7 @@ let iniciado = false;
 onAuthStateChanged(auth, user => {
   if (!user || iniciado) return;
   iniciado = true;
+  iniciarRevision();
   // Cuentas que no son de la caja (por ejemplo RRHH): avisar en vez de mostrar errores al guardar
   get(ref(db, "admins/" + user.uid)).then(s => {
     if (s.val() === true) return;
@@ -68,6 +79,33 @@ onAuthStateChanged(auth, user => {
   iniciarEventos();
   iniciarSolicitudes();
 });
+
+// =================================================================
+// REVISIÓN DE PEDIDOS (la hace el servidor; aquí solo se muestra)
+// Agrega una etiqueta "Revisar" a los pedidos que no calzan con el menú,
+// sin tocar cómo el panel original dibuja los pedidos.
+// =================================================================
+let revisiones = {};
+function marcarPedidos() {
+  document.querySelectorAll("#pedidos-lista .pedido-item").forEach(card => {
+    const b = card.querySelector("button[data-id]");
+    const r = b && revisiones[b.dataset.id];
+    const ya = card.querySelector(".revision");
+    if (!r || r.ok) { if (ya) ya.remove(); return; }
+    if (ya) return;
+    const div = document.createElement("div");
+    div.className = "revision";
+    div.innerHTML = '<b>Revisar este pedido</b><ul></ul>';
+    (r.motivos || []).forEach(m => { const li = document.createElement("li"); li.textContent = m; div.querySelector("ul").appendChild(li); });
+    const cuerpo = card.querySelector(".pedido-body");
+    (cuerpo || card.firstElementChild).insertAdjacentElement("afterend", div);
+  });
+}
+function iniciarRevision() {
+  onValue(ref(db, "pedidosRevision"), s => { revisiones = s.val() || {}; marcarPedidos(); }, () => {});
+  const lista = $("pedidos-lista");
+  if (lista) new MutationObserver(() => marcarPedidos()).observe(lista, { childList: true });
+}
 
 // =================================================================
 // TEXTOS

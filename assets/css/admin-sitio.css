@@ -96,3 +96,7 @@
 .aviso-app div{flex:1 1 260px}
 .aviso-app p{color:var(--suave);font-size:.95rem}
 .aviso-app .btn{width:auto;min-height:56px;padding:10px 20px;font-size:1rem}
+
+/* Pedido marcado por la revisión del servidor */
+.revision{border:2.5px solid var(--rojo);background:var(--peligro-claro);border-radius:12px;padding:10px 14px;font-size:1rem;color:#661B18}
+.revision ul{margin:4px 0 0 18px}
