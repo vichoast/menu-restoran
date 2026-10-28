@@ -57,7 +57,7 @@ exports.avisoPedidoNuevo = onValueCreated({ ref: "/pedidos/{pedidoId}", instance
   await enviar(await destinatarios(false), {
     titulo: "Nuevo pedido · " + String(p.cliente || "Sin nombre").slice(0, 40),
     cuerpo: partes.join(" · "),
-    link: "admin.html",
+    link: "panel",
     tag: "pedido-" + event.params.pedidoId
   });
 });
@@ -70,7 +70,7 @@ exports.avisoSolicitudEvento = onValueCreated({ ref: "/eventos/solicitudes/{soli
   await enviar(await destinatarios(true), {
     titulo: "Consulta de evento · " + String(s.nombre || "").slice(0, 40),
     cuerpo: partes.join(" · "),
-    link: "admin.html#solicitudes",
+    link: "panel#solicitudes",
     tag: "evento-" + event.params.solicitudId
   });
 });

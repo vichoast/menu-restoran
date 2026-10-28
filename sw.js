@@ -42,7 +42,7 @@ self.addEventListener("push", e => {
     badge: "assets/img/insignia-96.png",
     tag: d.tag || "sj",
     renotify: true,
-    data: { link: d.link || "admin.html" }
+    data: { link: (d.link || "panel").startsWith("panel") ? "https://vichoast.github.io/sj-panel/" + (d.link || "").replace(/^panel/, "") : d.link }
   };
   e.waitUntil(self.registration.showNotification(titulo, opciones));
 });

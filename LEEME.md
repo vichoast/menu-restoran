@@ -46,7 +46,7 @@ eventos/solicitudes/{id}         { tipo, nombre, telefono, correo, fecha, franja
 ## Apps en el celular (PWA)
 
 - **San José** (clientes): se instala desde cualquier página con el botón "Instalar la app" del pie (Android) o con Compartir → "Agregar a pantalla de inicio" (iPhone). Usa `manifest.webmanifest`.
-- **SJ Panel** (familia): se instala desde `admin.html` con el botón "Instalar el panel". Usa `panel.webmanifest` y abre directo el panel con la sesión guardada.
+- **SJ Panel** (familia): es una app aparte en https://vichoast.github.io/sj-panel/ (botón "Instalar el panel"). **Se edita aquí mismo**: `admin.html`, `assets/` y `panel/` (manifest y service worker de la app). El repo `vichoast/sj-panel` la arma con `herramientas/armar-panel.sh` y la publica sola en unos minutos. El `admin.html` de este sitio sigue funcionando y muestra un enlace a la app.
 - `sw.js` hace que se abran sin internet (con la última versión guardada) y muestra los avisos.
 
 ## Avisos de pedidos y eventos

@@ -19,9 +19,14 @@ const CLAVE_LOCAL = "sj-aviso-id";
 const leerLocal = () => { try { return localStorage.getItem(CLAVE_LOCAL); } catch (e) { return null; } };
 const guardarLocal = v => { try { v ? localStorage.setItem(CLAVE_LOCAL, v) : localStorage.removeItem(CLAVE_LOCAL); } catch (e) {} };
 
+// Solo la app SJ Panel (que trae su propio manifest) maneja instalación y avisos.
+// En el admin.html del sitio, este recuadro se esconde y se muestra el enlace a la app.
+const esApp = !!document.querySelector('link[rel="manifest"]');
+if (!esApp) $("este-cel").classList.add("hidden");
+
 // ---------- Service worker ----------
 let registro = null;
-const listoSW = ("serviceWorker" in navigator)
+const listoSW = (esApp && "serviceWorker" in navigator)
   ? navigator.serviceWorker.register("sw.js").then(r => (registro = r, navigator.serviceWorker.ready)).catch(e => { console.warn("SW", e); return null; })
   : Promise.resolve(null);
 
@@ -50,7 +55,7 @@ async function estadoAvisos() {
 
 async function pintar() {
   const caja = $("este-cel");
-  if (!caja) return;
+  if (!caja || !esApp) return;
   $("btn-instalar-panel").classList.toggle("hidden", instalada());
   const est = await estadoAvisos();
   const txt = $("avisos-estado"), btn = $("btn-avisos"), prueba = $("btn-avisos-probar");

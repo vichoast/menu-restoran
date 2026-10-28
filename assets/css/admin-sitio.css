@@ -92,3 +92,7 @@
 .este-cel-botones{display:flex;flex-wrap:wrap;gap:8px}
 .este-cel-botones .btn{width:auto;min-height:56px;padding:10px 18px;font-size:1rem}
 @media (max-width:560px){.este-cel-botones{width:100%}.este-cel-botones .btn{flex:1 1 140px}}
+.aviso-app{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px;background:var(--crema-2);border:2px solid var(--borde);border-left:10px solid var(--rojo);border-radius:18px;padding:14px 18px;margin-bottom:16px}
+.aviso-app div{flex:1 1 260px}
+.aviso-app p{color:var(--suave);font-size:.95rem}
+.aviso-app .btn{width:auto;min-height:56px;padding:10px 20px;font-size:1rem}
