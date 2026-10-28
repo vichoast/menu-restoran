@@ -1,42 +1,121 @@
 {
   "rules": {
+    ".read": false,
+    ".write": false,
+    "admins": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
+    "rrhh": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
     "menu": {
       ".read": true,
-      ".write": "auth != null"
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
     },
     "pedidos": {
-      ".read": "auth != null",
-      ".indexOn": ["fecha"],
-      "$id": {
-        ".write": "auth != null || (!data.exists() && newData.hasChildren(['cliente', 'fecha']))"
+      ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || root.child('rrhh').child(auth.uid).val() === true)",
+      "$pedidoId": {
+        ".write": "(auth != null && root.child('admins').child(auth.uid).val() === true) || (!data.exists() && newData.child('estado').val() === 'confirmado')",
+        ".validate": "newData.hasChildren(['cliente', 'detalle', 'cantidad', 'total', 'estado', 'fecha'])",
+        "cliente": {
+          ".validate": "newData.isString() && newData.val().length <= 80"
+        },
+        "empresa": {
+          ".validate": "newData.isString() && newData.val().length <= 60"
+        },
+        "detalle": {
+          ".validate": "newData.isString() && newData.val().length <= 600"
+        },
+        "nota": {
+          ".validate": "newData.isString() && newData.val().length <= 300"
+        },
+        "cantidad": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 50"
+        },
+        "total": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 5000000"
+        },
+        "estado": {
+          ".validate": "newData.val() === 'confirmado' || newData.val() === 'anulado'"
+        },
+        "fecha": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "confirmadoEn": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "$otro": {
+          ".validate": false
+        }
       }
     },
     "sitio": {
       ".read": true,
-      ".write": "auth != null"
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
     },
     "eventos": {
-      "franjas": { ".read": true, ".write": "auth != null" },
-      "disponibilidad": { ".read": true, ".write": "auth != null" },
-      "notas": { ".read": "auth != null", ".write": "auth != null" },
+      "franjas": {
+        ".read": true,
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+      },
+      "disponibilidad": {
+        ".read": true,
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+      },
+      "notas": {
+        ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+      },
       "solicitudes": {
-        ".read": "auth != null",
-        "$id": {
-          ".write": "auth != null || (!data.exists() && newData.child('estado').val() === 'nueva')",
+        ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+        "$solicitudId": {
+          ".write": "(auth != null && root.child('admins').child(auth.uid).val() === true) || (!data.exists() && newData.child('estado').val() === 'nueva')",
           ".validate": "newData.hasChildren(['nombre', 'telefono', 'tipo', 'estado', 'creado'])",
-          "nombre": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80" },
-          "telefono": { ".validate": "newData.isString() && newData.val().length <= 20" },
-          "correo": { ".validate": "newData.isString() && newData.val().length <= 120" },
-          "tipo": { ".validate": "newData.isString() && newData.val().length <= 40" },
-          "fecha": { ".validate": "newData.isString() && newData.val().length <= 10" },
-          "franja": { ".validate": "newData.isString() && newData.val().length <= 40" },
-          "franjaNombre": { ".validate": "newData.isString() && newData.val().length <= 40" },
-          "invitados": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 2000" },
-          "mensaje": { ".validate": "newData.isString() && newData.val().length <= 1000" },
-          "estado": { ".validate": "newData.val() === 'nueva' || newData.val() === 'contactada' || newData.val() === 'confirmada' || newData.val() === 'descartada'" },
-          "creado": { ".validate": "newData.isNumber() && newData.val() <= now + 60000" },
-          "actualizado": { ".validate": "newData.isNumber()" },
-          "$otro": { ".validate": false }
+          "nombre": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+          },
+          "telefono": {
+            ".validate": "newData.isString() && newData.val().length <= 20"
+          },
+          "correo": {
+            ".validate": "newData.isString() && newData.val().length <= 120"
+          },
+          "tipo": {
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "fecha": {
+            ".validate": "newData.isString() && newData.val().length <= 10"
+          },
+          "franja": {
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "franjaNombre": {
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "invitados": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 2000"
+          },
+          "mensaje": {
+            ".validate": "newData.isString() && newData.val().length <= 1000"
+          },
+          "estado": {
+            ".validate": "newData.val() === 'nueva' || newData.val() === 'contactada' || newData.val() === 'confirmada' || newData.val() === 'descartada'"
+          },
+          "creado": {
+            ".validate": "newData.isNumber() && newData.val() <= now + 60000"
+          },
+          "actualizado": {
+            ".validate": "newData.isNumber()"
+          },
+          "$otro": {
+            ".validate": false
+          }
         }
       }
     }

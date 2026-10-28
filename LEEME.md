@@ -31,7 +31,7 @@ eventos/solicitudes/{id}         { tipo, nombre, telefono, correo, fecha, franja
 
 ## Antes de publicar (una sola vez)
 
-1. **Reglas de la base de datos.** En la consola de Firebase, ve a Realtime Database y luego a Reglas. Compara con `database.rules.json` y publícalas. Si hoy tienes `".read": true, ".write": true`, cualquiera puede leer los pedidos con nombres; estas reglas lo cierran. Las solicitudes de eventos solo se pueden leer con login.
+1. **Reglas de la base de datos.** Ya están publicadas (28-oct-2026). Se mantuvieron tal cual las de `admins`, `rrhh`, `menu` y `pedidos`, y solo se agregaron `sitio` y `eventos`. Solo los usuarios que están en `admins` pueden editar la página. `database.rules.json` es la copia de lo publicado.
 2. **Fotos (Storage).** En la consola de Firebase, ve a Storage y luego a Comenzar. Firebase pide pasar al plan **Blaze** (hay que registrar una tarjeta). Lo que usa un restaurante cabe en la cuota gratis. Crea una alerta de presupuesto de US$1 en Google Cloud, en Facturación y luego Presupuestos y alertas. Después pega `storage.rules` en Storage, en la pestaña Reglas.
 3. **Datos del local.** En el panel, abre "Datos del local" y revisa que el horario diga **14:30 a 16:30**; es el mismo que se muestra en Inicio. En "Textos de la página", completa la dirección, el teléfono, el correo y las redes.
 
