@@ -35,13 +35,20 @@ let pedirInstalar = null;
 addEventListener("beforeinstallprompt", e => { e.preventDefault(); pedirInstalar = e; pintar(); });
 addEventListener("appinstalled", () => { pedirInstalar = null; pintar(); });
 
-$("btn-instalar-panel").onclick = async () => {
+const pasosInstalar = () => esIOS
+  ? "En iPhone: abre el panel en Safari, toca Compartir (el cuadrado con flecha) y luego “Agregar a pantalla de inicio”. Después ábrelo desde ese ícono."
+  : /android/i.test(navigator.userAgent)
+    ? "En Android: abre el menú de Chrome (los tres puntos ⋮) y toca “Instalar app” o “Agregar a pantalla principal”."
+    : "En el computador: haz clic en el ícono de instalar al final de la barra de direcciones, o en el menú ⋮ → “Instalar San José · Panel”.";
+async function instalar(ayudaId) {
   if (pedirInstalar) { pedirInstalar.prompt(); await pedirInstalar.userChoice.catch(() => {}); pedirInstalar = null; pintar(); return; }
-  $("avisos-ayuda").textContent = esIOS
-    ? "En iPhone: toca el botón Compartir (el cuadrado con flecha) y luego “Agregar a pantalla de inicio”. Después abre el panel desde ese ícono."
-    : "Abre el menú del navegador (los tres puntos) y toca “Instalar app” o “Agregar a pantalla de inicio”.";
-  $("avisos-ayuda").classList.remove("hidden");
-};
+  $(ayudaId).textContent = pasosInstalar();
+  $(ayudaId).classList.remove("hidden");
+}
+$("btn-instalar-panel").onclick = () => instalar("avisos-ayuda");
+$("btn-instalar-login").onclick = () => instalar("instalar-login-ayuda");
+// En la pantalla de ingreso: mostrar el botón solo en la app SJ Panel y si aún no está instalada
+if (esApp && !instalada()) $("btn-instalar-login").classList.remove("hidden");
 
 // ---------- Avisos ----------
 let usuario = null, rol = null, soportado = false;
