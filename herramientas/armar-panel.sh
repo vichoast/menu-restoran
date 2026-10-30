@@ -29,7 +29,7 @@ CABECERA='<link rel="manifest" href="manifest.webmanifest">\n<link rel="icon" ty
 sed -e "s#<!--PANEL-APP-HEAD-->#${CABECERA}#" \
     -e 's#<!--SOLO-SITIO-->.*<!--/SOLO-SITIO-->##' \
     -e "s#class=\"ver-pagina\" href=\"./\"#class=\"ver-pagina\" href=\"${SITIO}\"#" \
-    -e "s#class=\"nav-reporte\" href=\"reporte\"#class=\"nav-reporte\" href=\"${SITIO}reporte\"#" \
+    -e "s#id=\"btn-reporte\" href=\"reporte\"#id=\"btn-reporte\" href=\"${SITIO}reporte\"#" \
     -e 's#<title>Panel de Administración · Menú del Día</title>#<title>SJ Panel · Restaurant San José</title>#' \
     "$O/admin.html" > "$D/index.html"
 
