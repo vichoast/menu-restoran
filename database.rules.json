@@ -14,15 +14,22 @@
         ".write": false
       }
     },
+    "rrhhEmpresa": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
     "menu": {
       ".read": true,
       ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
     },
     "pedidos": {
-      ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || root.child('rrhh').child(auth.uid).val() === true)",
+      ".indexOn": ["empresa"],
+      ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || (root.child('rrhh').child(auth.uid).val() === true && !root.child('rrhhEmpresa').child(auth.uid).exists()) || (root.child('rrhh').child(auth.uid).val() === true && root.child('rrhhEmpresa').child(auth.uid).exists() && query.orderByChild === 'empresa' && query.equalTo === root.child('rrhhEmpresa').child(auth.uid).val()))",
       "$pedidoId": {
         ".write": "(auth != null && root.child('admins').child(auth.uid).val() === true) || (!data.exists() && newData.child('estado').val() === 'confirmado')",
-        ".validate": "newData.hasChildren(['cliente', 'detalle', 'cantidad', 'total', 'estado', 'fecha'])",
+        ".validate": "newData.hasChildren(['cliente', 'detalle', 'cantidad', 'total', 'estado', 'fecha']) && (data.exists() || newData.child('empresa').exists())",
         "cliente": {
           ".validate": "newData.isString() && newData.val().length <= 80"
         },
@@ -141,7 +148,7 @@
       }
     },
     "pedidosRevision": {
-      ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || root.child('rrhh').child(auth.uid).val() === true)",
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
       ".write": false
     }
   }

@@ -17,12 +17,15 @@ const fechaBonita = k => {
 };
 
 // Junta los celulares inscritos. "soloAdmins" = solo cuentas de la caja (no RRHH).
-async function destinatarios(soloAdmins) {
+// "empresa" = pedido de esa empresa: las cuentas de RRHH con empresa asignada (rrhhEmpresa/{uid})
+// reciben solo los avisos de la suya; las de RRHH sin empresa asignada siguen recibiendo todo.
+async function destinatarios(soloAdmins, empresa) {
   const db = admin.database();
-  const [avisos, admins, rrhh] = await Promise.all(["avisos", "admins", "rrhh"].map(p => db.ref(p).get().then(s => s.val() || {})));
+  const [avisos, admins, rrhh, rrhhEmpresa] = await Promise.all(["avisos", "admins", "rrhh", "rrhhEmpresa"].map(p => db.ref(p).get().then(s => s.val() || {})));
   const lista = [];
   for (const [uid, equipos] of Object.entries(avisos)) {
-    const permitido = admins[uid] === true || (!soloAdmins && rrhh[uid] === true);
+    const deSuEmpresa = rrhhEmpresa[uid] === undefined || rrhhEmpresa[uid] === empresa;
+    const permitido = admins[uid] === true || (!soloAdmins && rrhh[uid] === true && deSuEmpresa);
     if (!permitido) continue;
     for (const [id, e] of Object.entries(equipos || {})) if (e && e.token) lista.push({ uid, id, token: e.token });
   }
@@ -54,7 +57,7 @@ exports.avisoPedidoNuevo = onValueCreated({ ref: "/pedidos/{pedidoId}", instance
   const partes = [n + (n === 1 ? " almuerzo" : " almuerzos")];
   if (empresa !== "Particular") partes.push(empresa); else if (p.total) partes.push(clp(p.total));
   if (p.nota) partes.push("Ojo: " + String(p.nota).slice(0, 60));
-  await enviar(await destinatarios(false), {
+  await enviar(await destinatarios(false, empresa), {
     titulo: "Nuevo pedido · " + String(p.cliente || "Sin nombre").slice(0, 40),
     cuerpo: partes.join(" · "),
     link: "panel",

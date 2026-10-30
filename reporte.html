@@ -183,7 +183,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, onValue, get, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   const firebaseConfig = {
@@ -210,12 +210,16 @@
 
   let todosLosPedidosHoy = [];
   let filtroActual = 'TODAS';
+  // Si la cuenta es de una empresa (rrhhEmpresa/{uid} en Firebase), solo ve esa empresa.
+  // Cajas y cuentas antiguas de RRHH sin ese dato siguen viendo todo.
+  let empresaFija = null;
 
   function renderTabs() {
     const tabsCont = document.getElementById('contenedor-tabs');
     // Obtener las empresas únicas de los pedidos de hoy
     const empresasSet = new Set(todosLosPedidosHoy.map(p => p.empresa || 'Particular'));
-    const listaEmpresas = ['TODAS', ...Array.from(empresasSet)];
+    const listaEmpresas = empresaFija ? [empresaFija] : ['TODAS', ...Array.from(empresasSet)];
+    if (empresaFija) filtroActual = empresaFija;
 
     if (!listaEmpresas.includes(filtroActual)) filtroActual = 'TODAS';
 
@@ -287,9 +291,17 @@
 
   let dejarDeEscuchar = null;
 
-  function escucharPedidos(user) {
+  async function escucharPedidos(user) {
     if (dejarDeEscuchar) dejarDeEscuchar();
-    dejarDeEscuchar = onValue(pedidosRef, snap => {
+    empresaFija = null;
+    try {
+      const e = await get(ref(db, 'rrhhEmpresa/' + user.uid));
+      if (e.exists() && typeof e.val() === 'string') empresaFija = e.val();
+    } catch (err) { console.error('Firebase:', err); }
+    if (!auth.currentUser) return; // cerró sesión mientras se cargaba
+    // Cuenta de empresa: se piden a Firebase solo los pedidos de esa empresa
+    const origen = empresaFija ? query(pedidosRef, orderByChild('empresa'), equalTo(empresaFija)) : pedidosRef;
+    dejarDeEscuchar = onValue(origen, snap => {
       const data = snap.val();
       if (!data) {
         todosLosPedidosHoy = [];
@@ -314,6 +326,7 @@
   function dejarPedidos() {
     if (dejarDeEscuchar) dejarDeEscuchar();
     dejarDeEscuchar = null;
+    empresaFija = null;
     todosLosPedidosHoy = [];
     $('contenedor-tabs').innerHTML = '';
     $('contenedor-tabla').innerHTML = '';
