@@ -52,7 +52,7 @@ eventos/solicitudes/{id}         { tipo, nombre, telefono, correo, fecha, franja
 ## Avisos de pedidos y eventos
 
 1. En el panel, en el recuadro "Este celular", toca **Activar avisos**. En iPhone, primero instala el panel en la pantalla de inicio y ábrelo desde ese ícono (iOS 16.4 o más nuevo).
-2. Los celulares quedan guardados en `avisos/{uid}`. La caja (`admins`) recibe pedidos y consultas de eventos; RRHH (`rrhh`) recibe solo pedidos.
+2. Los celulares quedan guardados en `avisos/{uid}`. Los avisos son solo para la caja (`admins`): pedidos y consultas de eventos. RRHH y las empresas no reciben avisos.
 3. El envío lo hace `functions/index.js` (Cloud Functions). **Necesita el plan Blaze.** Para publicarlo, con Node instalado:
    ```
    npm install -g firebase-tools
@@ -67,6 +67,8 @@ eventos/solicitudes/{id}         { tipo, nombre, telefono, correo, fecha, franja
 - **Fotos (Storage):** solo las cuentas de la caja pueden subir, cambiar o borrar fotos. Sus UID están en `storage.rules`; si se agrega una cuenta de administración nueva, hay que sumarla en `admins` (base de datos) **y** en `storage.rules`.
 - **Registro de cuentas:** desactivado en Firebase → Authentication → Configuración → Acciones del usuario. Las cuentas se crean solo desde la consola.
 - **Revisión de pedidos:** la función `revisarPedidoNuevo` recalcula cada pedido nuevo con el menú del momento (mismas reglas de precio que `pedido.html`) y deja el resultado en `pedidosRevision/{id}`. Si algo no calza (total distinto, plato que no está en el menú, plato “solo autorizados” fuera de Europer), el panel muestra **“Revisar este pedido”** y llega un aviso a la caja. No cambia ni borra el pedido.
+- **RRHH por empresa:** una cuenta de RRHH sin `rrhhEmpresa` ve todos los pedidos. Si en la base de datos existe `rrhhEmpresa/{uid}` con el nombre de una empresa (por ejemplo `Europer`), esa cuenta solo ve los pedidos de esa empresa en `/reporte`. La cuenta `rrhh@sanjose.cl` está asignada a Europer. Para otra empresa o cuenta, agregar el UID en `rrhh` (valor `true`) y en `rrhhEmpresa` (valor = nombre de la empresa).
+- **Empresa obligatoria:** los pedidos nuevos deben traer el campo `empresa` (`pedido.html` ya lo envía siempre; si no es de convenio va como `Particular`).
 - **Empresas válidas:** las reglas solo aceptan `Particular`, `FoodPro` y `Europer`. Si se suma un convenio nuevo, hay que agregarlo en `pedido.html` (EMPRESAS), en `database.rules.json` y en `functions/index.js` (EMPRESAS_OK).
 - **WhatsApp:** si alguien guarda un celular de 9 dígitos (9XXXXXXXX), el panel y el sitio le agregan el 56 solos.
 
