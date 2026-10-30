@@ -106,10 +106,18 @@
     font-weight:800; font-size:1.05rem; color:var(--suave); line-height:1.2;
     transition:background .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease);
   }
-  .nav button svg{width:32px; height:32px}
+  .nav a.nav-reporte{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    min-height:96px; padding:12px 8px; border-radius:18px; border:2.5px solid var(--borde); background:#fff; text-decoration:none;
+    font-weight:800; font-size:1.05rem; color:var(--suave); line-height:1.2;
+    transition:background .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease);
+  }
+  .nav a.nav-reporte{grid-column:1 / -1; flex-direction:row; gap:12px; min-height:64px; text-align:center}
+  .nav a.nav-reporte:hover{border-color:var(--carbon); color:var(--carbon)}
+  .nav button svg, .nav a.nav-reporte svg{width:32px; height:32px}
   .nav button[aria-selected="true"]{background:var(--rojo); border-color:var(--rojo); color:#fff}
   .nav button:not([aria-selected="true"]):hover{border-color:var(--carbon); color:var(--carbon)}
-  @media (max-width:520px){ .nav button{font-size:.92rem; min-height:88px} }
+  @media (max-width:520px){ .nav button, .nav a.nav-reporte{font-size:.92rem; min-height:88px} }
 
   .panel{background:var(--papel); border:2px solid var(--borde); border-radius:22px; padding:26px 22px}
   @media (min-width:700px){ .panel{padding:32px 34px} }
@@ -319,6 +327,10 @@
 
     <!-- Navegación -->
     <nav class="nav" role="tablist" aria-label="Secciones del panel">
+      <a class="nav-reporte" href="reporte" target="_blank" rel="noopener">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        Reporte por empresa
+      </a>
       <button type="button" role="tab" aria-selected="true" data-tab="tab-pedidos">
         <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><path d="M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/><path d="M9 12h6M9 16h4"/></svg>
         Pedidos de hoy

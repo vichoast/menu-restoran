@@ -25,9 +25,11 @@ CABECERA='<link rel="manifest" href="manifest.webmanifest">\n<link rel="icon" ty
 #  - agrega el manifest e íconos de la app
 #  - quita el aviso "Ahora el panel es una app" (solo tiene sentido en el sitio)
 #  - el enlace "Ver la página" apunta al sitio público
+#  - el enlace "Reporte por empresa" apunta al reporte del sitio
 sed -e "s#<!--PANEL-APP-HEAD-->#${CABECERA}#" \
     -e 's#<!--SOLO-SITIO-->.*<!--/SOLO-SITIO-->##' \
     -e "s#class=\"ver-pagina\" href=\"./\"#class=\"ver-pagina\" href=\"${SITIO}\"#" \
+    -e "s#class=\"nav-reporte\" href=\"reporte\"#class=\"nav-reporte\" href=\"${SITIO}reporte\"#" \
     -e 's#<title>Panel de Administración · Menú del Día</title>#<title>SJ Panel · Restaurant San José</title>#' \
     "$O/admin.html" > "$D/index.html"
 
@@ -35,6 +37,7 @@ sed -e "s#<!--PANEL-APP-HEAD-->#${CABECERA}#" \
 grep -q 'href="manifest.webmanifest"' "$D/index.html"
 ! grep -q 'SOLO-SITIO' "$D/index.html"
 grep -q 'assets/js/avisos.js' "$D/index.html"
+grep -q "href=\"${SITIO}reporte\"" "$D/index.html"
 
 # admin.html también, por si algún enlace antiguo apunta ahí
 cp "$D/index.html" "$D/admin.html"
