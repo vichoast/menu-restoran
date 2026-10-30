@@ -140,8 +140,8 @@ onAuthStateChanged(auth, async user => {
   rol = null;
   if (!user) { pintar(); return; }
   try {
-    const [a, r] = await Promise.all([get(ref(db, "admins/" + user.uid)), get(ref(db, "rrhh/" + user.uid))]);
-    rol = a.val() === true ? "admin" : r.val() === true ? "rrhh" : false;
+    const a = await get(ref(db, "admins/" + user.uid));
+    rol = a.val() === true ? "admin" : false; // los avisos son solo para la caja
   } catch (e) { rol = false; }
   pintar();
   // Si se abrió desde un aviso de evento, ir directo a Solicitudes
