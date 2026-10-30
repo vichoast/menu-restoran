@@ -16,17 +16,14 @@ const fechaBonita = k => {
   return new Date(Date.UTC(a, m - 1, d, 12)).toLocaleDateString("es-CL", { weekday: "long", day: "numeric", month: "long", timeZone: "America/Santiago" });
 };
 
-// Junta los celulares inscritos. "soloAdmins" = solo cuentas de la caja (no RRHH).
-// "empresa" = pedido de esa empresa: las cuentas de RRHH con empresa asignada (rrhhEmpresa/{uid})
-// reciben solo los avisos de la suya; las de RRHH sin empresa asignada siguen recibiendo todo.
-async function destinatarios(soloAdmins, empresa) {
+// Junta los celulares inscritos. Los avisos son solo para las cuentas de la caja (admins):
+// RRHH y las empresas no reciben avisos.
+async function destinatarios() {
   const db = admin.database();
-  const [avisos, admins, rrhh, rrhhEmpresa] = await Promise.all(["avisos", "admins", "rrhh", "rrhhEmpresa"].map(p => db.ref(p).get().then(s => s.val() || {})));
+  const [avisos, admins] = await Promise.all(["avisos", "admins"].map(p => db.ref(p).get().then(s => s.val() || {})));
   const lista = [];
   for (const [uid, equipos] of Object.entries(avisos)) {
-    const deSuEmpresa = rrhhEmpresa[uid] === undefined || rrhhEmpresa[uid] === empresa;
-    const permitido = admins[uid] === true || (!soloAdmins && rrhh[uid] === true && deSuEmpresa);
-    if (!permitido) continue;
+    if (admins[uid] !== true) continue;
     for (const [id, e] of Object.entries(equipos || {})) if (e && e.token) lista.push({ uid, id, token: e.token });
   }
   return lista;
@@ -57,7 +54,7 @@ exports.avisoPedidoNuevo = onValueCreated({ ref: "/pedidos/{pedidoId}", instance
   const partes = [n + (n === 1 ? " almuerzo" : " almuerzos")];
   if (empresa !== "Particular") partes.push(empresa); else if (p.total) partes.push(clp(p.total));
   if (p.nota) partes.push("Ojo: " + String(p.nota).slice(0, 60));
-  await enviar(await destinatarios(false, empresa), {
+  await enviar(await destinatarios(), {
     titulo: "Nuevo pedido · " + String(p.cliente || "Sin nombre").slice(0, 40),
     cuerpo: partes.join(" · "),
     link: "panel",
@@ -70,7 +67,7 @@ exports.avisoSolicitudEvento = onValueCreated({ ref: "/eventos/solicitudes/{soli
   const partes = [s.tipo || "Evento"];
   if (s.fecha) partes.push(fechaBonita(s.fecha));
   if (s.invitados) partes.push(s.invitados + " personas");
-  await enviar(await destinatarios(true), {
+  await enviar(await destinatarios(), {
     titulo: "Consulta de evento · " + String(s.nombre || "").slice(0, 40),
     cuerpo: partes.join(" · "),
     link: "panel#solicitudes",
@@ -137,7 +134,7 @@ exports.revisarPedidoNuevo = onValueCreated({ ref: "/pedidos/{pedidoId}", instan
   const r = revisar(p, menu);
   await admin.database().ref("pedidosRevision/" + event.params.pedidoId).set(r);
   if (!r.ok) {
-    await enviar(await destinatarios(true), {
+    await enviar(await destinatarios(), {
       titulo: "Revisar pedido · " + String(p.cliente || "Sin nombre").slice(0, 40),
       cuerpo: r.motivos.join(" · ").slice(0, 180),
       link: "panel",
